@@ -3,8 +3,8 @@ look 3 3 0
 up 0 1 0
 d 1
 bounds -1 -1 1 1
-res 8000 8000
-ambient 0.1 0.1 0.1
+res 2000 2000
+ambient 0.0 0.0 0.0
 light -3 6 0 1 0.5 0.5 0.5
 light  9 6 0 1 1.0 0.5 0.5
 sphere 0 3 0 1 1.0 0.0 0.0

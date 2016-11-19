@@ -38,7 +38,7 @@ class Sphere {
   
   // Member functions:
   bool raySphereIntersection( const Ray& ray );
-  std::tuple<bool, Color> getRaySphereRGB( const Ray& ray, const Color& ambl, const vector<LightSource>& lights );
+  tuple<bool, Color> getRaySphereRGB( const Ray& ray, const Color& ambl, const vector<LightSource>& lights );
 
   // pprint member function:
   void pprint(ostream& out = cout) const;

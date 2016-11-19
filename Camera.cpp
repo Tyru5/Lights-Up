@@ -433,7 +433,7 @@ void Camera::writeImage( const string& out_file ){
 
   // Map pixel, get only one *very important :: talked with jake*
   Vector3i rgb(3);
-  for(int i = 0; i < width; i++ ){ // awesome! <-- UPDATED! this gets the right color in the right order.. i'll fix later to make it print out correctly...
+  for(int i = 0; i < width; i++ ){
     for(int c = 0; c < height; c++ ){
       for(int sp = 0; sp < static_cast<int>(spheres.size()); sp++){
 

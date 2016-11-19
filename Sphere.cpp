@@ -74,7 +74,7 @@ tuple<bool, Color> Sphere::getRaySphereRGB( const Ray& ray, const Color& ambl, c
   */
 
   bool res = raySphereIntersection( ray );
-  
+  double alpha = 16.0;
   Color color; // to start off, a blank color;
   if( res ){
 
@@ -105,7 +105,7 @@ tuple<bool, Color> Sphere::getRaySphereRGB( const Ray& ray, const Color& ambl, c
 
 	// cout << toC.dot( spR ) << " ptos associated = " << ptos.transpose() << endl;; //<-- why not 16?
 	
-	color += mat_props * lights[z].energy *  pow( toC.dot( spR ), 16 ); //<-- why not 16?
+	color += mat_props * lights[z].energy *  pow( toC.dot( spR ), alpha );
 	// cout << "color3 = " << color << "with ptos of = " << ptos.transpose() << endl;
 
       }
