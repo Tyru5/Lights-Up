@@ -18,8 +18,10 @@
 #include "LightSource.h"
 #include "Sphere.h"
 
+
 using Eigen::Vector3d;
 using Eigen::Vector3i;
+using Eigen::RowVector3i;
 
 class Camera{
 
@@ -34,21 +36,22 @@ class Camera{
   Camera(){};
 
   // member functions:
-  void parseScene( const std::string& scene_file );
+  void parseScene( const string& scene_file );
 
   void buildRM();
   void calculateRays();
   
-  void print_ts(const std::vector<std::vector<double>>& vect);
-  void find_tmin_tmax(std::vector<std::vector<double>>& tvals);
+  void print_ts(const vector< vector<double>>& vect);
+  void find_tmin_tmax( vector< vector<double>>& tvals);
   
   // Where the magic happens:
   void computeDist(const Face& current_face);
   
   Vector3i getColour(const double& tval);
-  Vector3i mapColour(const std::tuple<bool, Color>& bc);
+  RowVector3i  mapColour(const Color& bc);
+  void printPixs() const;
   
-  void writeImage(const std::string& out_file);
+  void writeImage(const string& out_file);
   
   void rayTriangleIntersection(const ModelObject& obj, const Face& face);
 
@@ -73,17 +76,17 @@ class Camera{
   // class instance variables:
  protected:
   // location of the focal point
-  std::string eye_header;
+  string eye_header;
   // the look at point
-  std::string look_header;
+  string look_header;
   // up vector
-  std::string supv;
+  string supv;
   // distacne from ip:
-  std::string dist_header;
+  string dist_header;
   // bounds
-  std::string bounds_header;
+  string bounds_header;
   // res
-  std::string res_header;
+  string res_header;
 
   // Camera specs:
   Vector3d EYE;
@@ -106,17 +109,19 @@ class Camera{
   double height;
 
   // array of rays hey...
-  std::vector< std::vector< Ray > > Rays;
+  vector< std::vector< Ray > > Rays;
 
   // 2d array to hold all t's:
   std::vector< std::vector< double > > ts; 
 
 
   // TESTING:
-  std::vector< tuple<bool, Color> > sphere_colors;
+  vector< tuple<bool, Color> > sphere_colors;
+  vector < vector<RowVector3i> > pixs;
+
   
-  double tmin = std::numeric_limits<double>::max(); // max double
-  double tmax = std::numeric_limits<double>::min(); // min double
+  double tmin = numeric_limits<double>::max(); // max double
+  double tmax = numeric_limits<double>::min(); // min double
 
   // ambient illumination in the scene:
   Color ambient_color;

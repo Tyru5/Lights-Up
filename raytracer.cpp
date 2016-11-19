@@ -69,7 +69,7 @@ int main(int argc, char *argv[]){
   camera.buildRM();
   camera.calculateRays();
   
-  camera.raySphereIntersection();
+  // camera.raySphereIntersection();
 
   camera.writeImage( argv[2] );
   

@@ -17,6 +17,7 @@
 
 // namespace:
 using namespace std;
+using Eigen::RowVector3i;
 using Eigen::Vector4d;
 using Eigen::Vector3d;
 using Eigen::Vector3i;
@@ -373,52 +374,48 @@ void Camera::rayTriangleIntersection(const ModelObject& obj, const Face& face){
 }
 
 
-void Camera::raySphereIntersection() {
+// void Camera::raySphereIntersection() {
 
-  for( int i = 0; i < width; i++){
-    for( int c = 0; c < height; c++){ // for each ray
+//   for( int i = 0; i < width; i++){
+//     for( int c = 0; c < height; c++){ // for each ray
 
-      for( int j = 0; j < static_cast<int>(spheres.size()); j++){ // for all sphere in scene
+//       for( int j = 0; j < static_cast<int>(spheres.size()); j++){ // for all sphere in scene
 
-	tuple<bool, Color> bool_color = spheres[j].getRaySphereRGB( Rays[i][height - c -1], ambient_color, lightSource_list );
-	// cout << "Color from raySphereIntersection = " << color;
-	sphere_colors.push_back( bool_color );
+// 	tuple<bool, Color> bool_color = spheres[j].getRaySphereRGB( Rays[i][height - c -1], ambient_color, lightSource_list );
+// 	// cout << "Color from raySphereIntersection = " << color;
+// 	sphere_colors.push_back( bool_color );
 	
-      }
+//       }
 
-    } 
-  } // end of rays.
+//     } 
+//   } // end of rays.
 
 
-  // cout << "Printing the colors in the camera class" << endl;
-  // for ( const auto& i : sphere_colors ) {
-  //   cout << get<0>(i) << get<1>(i);
-  // }
+//   // cout << "Printing the colors in the camera class" << endl;
+//   // for ( const auto& i : sphere_colors ) {
+//   //   cout << get<0>(i) << get<1>(i);
+//   // }
   
-}
+// }
 
-Vector3i Camera::mapColour( const tuple<bool, Color>& bc ){
+RowVector3i Camera::mapColour( const Color &c ){
 
   // tuple(map(lambda(x) : ZZ(max(0,min(255,round(255.0 * x)))), res[1]));
 
   int red,green,blue;
-  Vector3i colorRGB(0,0,0);
+  RowVector3i colorRGB(0,0,0);
   
-  if( get<0>(bc) ){
+  red   = max(0.0, min(255.0,round(255.0 * c.red )));
+  green = max(0.0, min(255.0,round(255.0 * c.green)));
+  blue  = max(0.0, min(255.0,round(255.0 * c.blue )));
   
-    red   = max(0.0, min(255.0,round(255.0 * get<1>(bc).red )));
-    green = max(0.0, min(255.0,round(255.0 * get<1>(bc).green)));
-    blue  = max(0.0, min(255.0,round(255.0 * get<1>(bc).blue )));
-    
-    colorRGB(0) = red;
-    colorRGB(1) = green;
-    colorRGB(2) = blue;
-    
-    cout << colorRGB.transpose() << endl;
-    return colorRGB;
-  }
-
+  colorRGB(0) = red;
+  colorRGB(1) = green;
+  colorRGB(2) = blue;
+  
+  // cout << colorRGB << endl;
   return colorRGB;
+
 }
 
 
@@ -427,16 +424,37 @@ void Camera::writeImage( const string& out_file ){
   ofstream out( out_file );
   if( !out ) cout << "Sorry! Couldn't write out the file: " << out_file << endl;
 
+  pixs = vector< vector<RowVector3i> >(width, vector<RowVector3i>(height, RowVector3i(0,0,0) ) ); // pretty awesome
+  // printPixs();
+  
   // start writing out to the file:
   out << "P3 " << endl;
   out << width << " " << height << " 255" << endl;
 
-  //start writing out pixels:
+  // Map pixel, get only one *very important :: talked with jake*
   Vector3i rgb(3);
-  for(int i = 0; i < width; i++, out << endl){ // awesome! <-- UPDATED!
+  for(int i = 0; i < width; i++ ){ // awesome! <-- UPDATED! this gets the right color in the right order.. i'll fix later to make it print out correctly...
     for(int c = 0; c < height; c++ ){
-      rgb = mapColour( sphere_colors[i * height + c] );
-      out << rgb(0) << " " << rgb(1) << " " << rgb(2) << " ";
+      for(int sp = 0; sp < static_cast<int>(spheres.size()); sp++){
+
+	tuple<bool, Color> res = spheres[sp].getRaySphereRGB( Rays[i][height - c -1], ambient_color, lightSource_list );
+	if( get<0>(res) ){
+	  // rgb = mapColour( sphere_colors[i * height + c] );
+	  //rgb = mapColour( get<1>(res) );
+	  // out << rgb(0) << " " << rgb(1) << " " << rgb(2) << " ";
+	  pixs[i][c] = mapColour( get<1>(res) );
+	  // cout << "pix[i,c] = " << pixs[i][c] << endl;
+	  
+	}
+	
+      }
+    }
+  }
+
+  // now writing out:
+  for(int i = 0; i < width; i++, out << endl){
+    for(int j = 0; j < height; j++){
+      out << pixs[j][i] << " "; // reversed to print out correctly
     }
   }
   
@@ -471,4 +489,16 @@ void Camera::find_tmin_tmax(std::vector<std::vector<double>>& tvals){
     }
   }
   
+}
+
+// pa4
+void Camera::printPixs() const{
+  
+  for(int i = 0; i < width; i++){
+    for(int c = 0; c < height; c++){
+      cout << pixs[i][c] << " ";
+    }
+    cout << endl;
+  }
+
 }
