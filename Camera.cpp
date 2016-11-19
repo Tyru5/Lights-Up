@@ -380,7 +380,7 @@ void Camera::raySphereIntersection() {
 
       for( int j = 0; j < static_cast<int>(spheres.size()); j++){ // for all sphere in scene
 
-	tuple<bool, Color> bool_color = spheres[j].getRaySphereRGB( Rays[i][c], ambient_color, lightSource_list );
+	tuple<bool, Color> bool_color = spheres[j].getRaySphereRGB( Rays[i][height - c -1], ambient_color, lightSource_list );
 	// cout << "Color from raySphereIntersection = " << color;
 	sphere_colors.push_back( bool_color );
 	
@@ -414,7 +414,7 @@ Vector3i Camera::mapColour( const tuple<bool, Color>& bc ){
     colorRGB(1) = green;
     colorRGB(2) = blue;
     
-    // cout << colorRGB.transpose() << endl;
+    cout << colorRGB.transpose() << endl;
     return colorRGB;
   }
 
@@ -435,7 +435,7 @@ void Camera::writeImage( const string& out_file ){
   Vector3i rgb(3);
   for(int i = 0; i < width; i++, out << endl){ // awesome! <-- UPDATED!
     for(int c = 0; c < height; c++ ){
-      rgb = mapColour( sphere_colors[c * height + i] );
+      rgb = mapColour( sphere_colors[i * height + c] );
       out << rgb(0) << " " << rgb(1) << " " << rgb(2) << " ";
     }
   }
