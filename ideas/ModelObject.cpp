@@ -9,205 +9,158 @@
 #include <string>
 #include <math.h> // for sqrt function
 #include <vector>
+#include <fstream>
+#include <sstream>
+#include <algorithm> // replace
 #include <Eigen/Dense>
 #include "ModelObject.h"
-#include "Face.h"
 
 // namespace
 using namespace std;
 using Eigen::MatrixXd;
-using Eigen::VectorXd;
 
-int ModelObject:: get_verticies() const{
-  return obj_verticies;
+// Macros:
+#define DEBUG true
+
+
+void ModelObject::pprint(ostream& out) const{
+  out << "Model: " << obj_file << endl;
 }
 
-int ModelObject:: get_faces() const{
-  return obj_faces;
+ostream& operator<< (ostream& out, const ModelObject& m){
+  m.pprint( out );
+  return out;
 }
 
-void ModelObject:: set_verticies(const int& val){
-  obj_verticies = val;
-}
 
-void ModelObject:: set_faces(const int& val){
-  obj_faces = val;
-}
+// Member function to parse the .obj model file:
+void ModelObject::parseObj(){
 
-void ModelObject::set_vertex_list(const MatrixXd& val){
-  vertex_list = val;
-}
+  string line;  
+  ifstream obj( obj_file );
+  if( !obj ) cout << "Sorry! Could open " << obj_file << "!" << endl;
 
-void ModelObject::set_faces_list(const MatrixXd& val){
-  faces_list = val;
-}
+  stringstream mdss;
+  string identifier;
+  // Parsing the whole obj file:
+  while( getline( obj, line ) ){
+    mdss << line;
+    // cout << mdss.str() << endl;
+    mdss >> identifier;
+    // if(DEBUG) cout << "mdss identifier = " << identifier << endl;
+    
+    // Ignore comments, vt, and empty lines:
+    if( identifier == "#" || identifier == "vt" || mdss.str().length() == 1 ){
+      // clearing the stringstream:
+      mdss.str( string() );
+      mdss.clear();
+      continue;
+    }
+    else if( identifier== "mtllib" ){
+      /*This is the file that we have to load for the material properties of the face */
+      cout << "found the mtllib file!" << endl;
+      // have a function that does this:
+    }
+    else if( identifier == "v" ){
+      number_of_vertices++;
+    }
+    else if( identifier == "vn" ){
+      number_of_vertices_norm++;
+    }
+    else if( identifier == "f" ){
+      number_of_faces++;
+    }
+    
+    // clearing the stringstream:
+    mdss.str( string() );
+    mdss.clear();
 
-double ModelObject:: mean_vertex_x(){
-  total_x = 0.0;
-  for (int i = 0; i < vertex_list.rows(); i++){
-    total_x += vertex_list(i,0);
+
+  } // end of while loop
+ 
+
+  // Allocate right amount of space for verts,verts-norm,faces:
+  // r x c
+  vertices.resize(number_of_vertices, 3);
+  nertices.resize(number_of_vertices_norm,3);
+  F= vector< Face >(number_of_faces);
+
+  ifstream obj2( obj_file );
+
+  /*For xyz vertices*/
+  double x,y,z;
+  double A,B,C;
+
+  stringstream mdss2;
+  string identifier2;
+  
+  int row_count = 0;
+  int row_count2 = 0;
+  int face_counter = 0;
+  while( getline( obj2, line ) ){
+    mdss2 << line;
+    // cout << mdss2.str() << endl;
+    mdss2 >> identifier2;
+    // if(DEBUG) cout << "mdss identifier2 = " << identifier2 << endl;
+    
+    // Ignore comments, vt, and empty lines:
+    if( identifier2 == "#" || identifier2 == "vt" || mdss2.str().length() == 1 ){
+      // clearing the stringstream:
+      mdss2.str( string() );
+      mdss2.clear();
+      continue;
+    }
+
+    else if( identifier2 == "v" ){
+      mdss2 >> x >> y >> z;
+      vertices(row_count,0) = x;
+      vertices(row_count,1) = y;
+      vertices(row_count,2) = z;      
+      row_count++;
+    }
+
+    else if( identifier2 == "vn" ){
+      mdss2 >> x >> y >> z;
+      nertices(row_count2, 0) = x;
+      nertices(row_count2, 1) = y;
+      nertices(row_count2, 2) = z;
+      row_count2++;
+    }
+
+    else if( identifier2 == "f" ){
+      // cout << mdss2.str() << endl;      
+      size_t offset = 0; // offset will be set to the length of characters of the "value" - 1.
+      A = stod(&line[2], &offset); 
+      B = stod(&line[offset + 6]); 
+      C = stod(&line[offset + 12]);
+      // cout << A << " " << B <<  " " << C << endl;
+      F[face_counter] = Face( A-1, B-1, C-1 ); // had to subtract one for the offset
+      face_counter++;
+    }
+  
+    // clearing the stringstream:
+    mdss2.str( string() );
+    mdss2.clear();
+
+    
+  } // end of while loop
+
+  if(DEBUG){
+    cout << "vertices = \n" << vertices << endl;
+    cout << "norms = \n" << nertices << endl;
   }
-  // cout << "Total_x = " << total_x << endl;
-  double res = (total_x/obj_verticies);
-  return res;
-}
-
-double ModelObject:: mean_vertex_y(){
-  total_y = 0.0;
-  for (int i = 0; i < vertex_list.rows(); i++){
-    total_y += vertex_list(i,1);
-  }
-  // cout << "Total_y = " << total_y << endl;
-  double res = (total_y/obj_verticies);
-  return res;
-}
-
-double ModelObject:: mean_vertex_z(){
-  total_z = 0.0;
-  for (int i = 0; i < vertex_list.rows(); i++){
-    total_z += vertex_list(i,2);
-  }
-  // cout << "Total_z = " << total_z << endl;
-  double res = (total_z/obj_verticies);
-  return res;
-}
-
-void ModelObject::find_max_min_x(){
-
-  max_x = xes(0);
-  min_x = xes(0);
-  for (int i = 0; i < xes.size(); i++){
-    if(xes(i) > max_x) max_x = xes(i);
-    if(xes(i) < min_x) min_x = xes(i);
-  }
-
-  // cout << "This is the min x: " << min_x << endl;
-  // cout << "This is the max x: " << max_x << endl;
-
-}
-
-double ModelObject:: get_min_x() const{
-  return min_x;
-}
-
-double ModelObject:: get_max_x() const{
-  return max_x;
-}
-
-void ModelObject::find_max_min_y(){
-
-  max_y = whys(0);
-  min_y = whys(0);
-  for (int i = 0; i < whys.size(); i++){
-    if(whys(i) > max_y) max_y = whys(i);
-    if(whys(i) < min_y) min_y = whys(i);
-  }
-
-  // cout << "This is the min y: " << min_y << endl;
-  // cout << "This is the max y: " << max_y << endl;
-
-}
-
-double ModelObject:: get_min_y() const{
-  return min_y;
-}
-
-double ModelObject:: get_max_y() const{
-  return max_y;
-}
-
-void ModelObject::find_max_min_z(){
-
-  max_z = zeezs(0);
-  min_z = zeezs(0);
-  for (int i = 0; i < zeezs.size(); i++){
-    if(zeezs(i) > max_z) max_z = zeezs(i);
-    if(zeezs(i) < min_z) min_z = zeezs(i);
-  }
-
-  // cout << "This is the min z: " << min_z << endl;
-  // cout << "This is the max z: " << max_z << endl;
-
-}
-
-double ModelObject:: get_min_z() const{
-  return min_z;
-}
-
-double ModelObject:: get_max_z() const{
-  return max_z;
-}
-
-void ModelObject:: print_vertex_list() const{
-  cout << vertex_list << endl;
-}
-
-void ModelObject::print_faces_list() const{
-  cout << faces_list << endl;
-}
-
-void ModelObject::extract_x_verts(){
-
-  xes.resize( obj_verticies );
-  for (int i = 0; i < vertex_list.rows(); i++){
-    xes(i) = vertex_list(i,0);
-  }
-
-}
-
-void ModelObject::extract_y_verts(){
-
-  whys.resize( obj_verticies );
-  for (int i = 0; i < vertex_list.rows(); i++){
-    whys(i) = vertex_list(i,1);
+  
+  // Map vertices to faces:
+  for(int i = 0; i < static_cast<int>(F.size()); i++){
+    F[i].map( vertices );
   }
 
-}
-
-
-void ModelObject::extract_z_verts(){
-
-  zeezs.resize(obj_verticies);
-  for (int i = 0; i < vertex_list.rows() ; i++){
-    zeezs(i) = vertex_list(i,2);
+  if(DEBUG){
+    cout << "printing out the faces for the model:\n" << endl;
+    for(int i = 0; i < static_cast<int>(F.size()); i++){
+      cout << F[i] << endl;
+    }
   }
 
+ 
 }
-
-VectorXd ModelObject:: get_xes(){
-  return xes;
-}
-
-VectorXd ModelObject:: get_whys(){
-  return whys;
-}
-
-VectorXd  ModelObject:: get_zeezs(){
-  return zeezs;
-}
-
-
-double ModelObject::std_dev(const VectorXd& list){
-  // will hold the total value of the list.
-  double total_sum = 0;
-  for(int i = 0; i < obj_verticies; i++) {
-    total_sum += list(i);
-  }
-
-  // calculating the mean:
-  double mean = total_sum / obj_verticies;
-
-  double element_mean_squared = 0.0;
-  for(int i = 0; i < obj_verticies; i++){
-    element_mean_squared += pow( (list(i) - mean), 2 );
-  }
-
-  double res = (element_mean_squared / obj_verticies);
-
-  return sqrt(res);
-}
-
-MatrixXd ModelObject:: get_main_vertex_list() const{
-  return vertex_list;
-}
-

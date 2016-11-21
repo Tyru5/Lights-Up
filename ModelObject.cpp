@@ -4,20 +4,30 @@
 // Class : CS410
 // Email : tyrus.alexander.malmstrom@gmail.com
 
+/*
+
+                                       ~QUICK NOTE~
+
+In building my raytracer for this assignment, I used a third party library called Tiny obj Loader.
+
+As taken from their official webpage, 
+"Tiny but powerful single file wavefront obj loader written in C++. No dependency except for C++ STL. It can parse 10M over polygons with moderate memory and time."
+
+More information may be found here: https://syoyo.github.io/tinyobjloader/
+
+*/
+
+
 // including directives:
-#include <iostream>
-#include <string>
 #include <math.h> // for sqrt function
-#include <vector>
-#include <fstream>
-#include <sstream>
 #include <algorithm> // replace
-#include <Eigen/Dense>
+
+// Use this in *one* .cc
+#define TINYOBJLOADER_IMPLEMENTATION // < -- *NEED to have the directives / includes like this*
 #include "ModelObject.h"
 
 // namespace
 using namespace std;
-using Eigen::MatrixXd;
 
 // Macros:
 #define DEBUG true
@@ -36,131 +46,185 @@ ostream& operator<< (ostream& out, const ModelObject& m){
 // Member function to parse the .obj model file:
 void ModelObject::parseObj(){
 
-  string line;  
-  ifstream obj( obj_file );
-  if( !obj ) cout << "Sorry! Could open " << obj_file << "!" << endl;
+  bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &err, obj_file.c_str() );
 
-  stringstream mdss;
-  string identifier;
-  // Parsing the whole obj file:
-  while( getline( obj, line ) ){
-    mdss << line;
-    // cout << mdss.str() << endl;
-    mdss >> identifier;
-    // if(DEBUG) cout << "mdss identifier = " << identifier << endl;
-    
-    // Ignore comments, vt, and empty lines:
-    if( identifier == "#" || identifier == "vt" || mdss.str().length() == 1 ){
-      // clearing the stringstream:
-      mdss.str( string() );
-      mdss.clear();
-      continue;
-    }
-    else if( identifier== "mtllib" ){
-      /*This is the file that we have to load for the material properties of the face */
-      cout << "found the mtllib file!" << endl;
-      // have a function that does this:
-    }
-    else if( identifier == "v" ){
-      number_of_vertices++;
-    }
-    else if( identifier == "vn" ){
-      number_of_vertices_norm++;
-    }
-    else if( identifier == "f" ){
-      number_of_faces++;
-    }
-    
-    // clearing the stringstream:
-    mdss.str( string() );
-    mdss.clear();
-
-
-  } // end of while loop
- 
-
-  // Allocate right amount of space for verts,verts-norm,faces:
-  // r x c
-  vertices.resize(number_of_vertices, 3);
-  nertices.resize(number_of_vertices_norm,3);
-  F= vector< Face >(number_of_faces);
-
-  ifstream obj2( obj_file );
-
-  /*For xyz vertices*/
-  double x,y,z;
-  double A,B,C;
-
-  stringstream mdss2;
-  string identifier2;
-  
-  int row_count = 0;
-  int row_count2 = 0;
-  int face_counter = 0;
-  while( getline( obj2, line ) ){
-    mdss2 << line;
-    // cout << mdss2.str() << endl;
-    mdss2 >> identifier2;
-    // if(DEBUG) cout << "mdss identifier2 = " << identifier2 << endl;
-    
-    // Ignore comments, vt, and empty lines:
-    if( identifier2 == "#" || identifier2 == "vt" || mdss2.str().length() == 1 ){
-      // clearing the stringstream:
-      mdss2.str( string() );
-      mdss2.clear();
-      continue;
-    }
-
-    else if( identifier2 == "v" ){
-      mdss2 >> x >> y >> z;
-      vertices(row_count,0) = x;
-      vertices(row_count,1) = y;
-      vertices(row_count,2) = z;      
-      row_count++;
-    }
-
-    else if( identifier2 == "vn" ){
-      mdss2 >> x >> y >> z;
-      nertices(row_count2, 0) = x;
-      nertices(row_count2, 1) = y;
-      nertices(row_count2, 2) = z;
-      row_count2++;
-    }
-
-    else if( identifier2 == "f" ){
-      // cout << mdss2.str() << endl;      
-      size_t offset = 0; // offset will be set to the length of characters of the "value" - 1.
-      A = stod(&line[2], &offset); 
-      B = stod(&line[offset + 6]); 
-      C = stod(&line[offset + 12]);
-      // cout << A << " " << B <<  " " << C << endl;
-      F[face_counter] = Face( A-1, B-1, C-1 ); // had to subtract one for the offset
-      face_counter++;
-    }
-  
-    // clearing the stringstream:
-    mdss2.str( string() );
-    mdss2.clear();
-
-    
-  } // end of while loop
-
-  if(DEBUG){
-    cout << "vertices = \n" << vertices << endl;
-    cout << "norms = \n" << nertices << endl;
+  if (!err.empty()) { // `err` may contain warning message.
+    cerr << err << endl;
   }
   
-  // Map vertices to faces:
-  for(int i = 0; i < static_cast<int>(F.size()); i++){
-    F[i].map( vertices );
-  }
-
-  if(DEBUG){
-    cout << "printing out the faces for the model:\n" << endl;
-    for(int i = 0; i < static_cast<int>(F.size()); i++){
-      cout << F[i] << endl;
-    }
+  if (!ret) {
+    exit(1);
   }
 
  
+}
+
+/* ~Important note~
+   I used this function and modified it for my own needs from syoyo @ https://github.com/syoyo/tinyobjloader
+
+   - syoyo matains the project: Tiny Obj Loader, Tiny but powerful singile file wavefront obj loader program. 
+
+*/
+void ModelObject::PrintInfo(const tinyobj::attrib_t& attrib,
+			    const std::vector<tinyobj::shape_t>& shapes,
+			    const std::vector<tinyobj::material_t>& materials) const{
+  cout << "# of vertices  : " << (attrib.vertices.size() / 3) << endl;
+  cout << "# of normals   : " << (attrib.normals.size() / 3)  << endl;
+  cout << "# of texcoords : " << (attrib.texcoords.size() / 2) <<endl;
+
+  cout << "# of shapes    : " << shapes.size() << endl;
+  cout << "# of materials : " << materials.size() << endl;
+
+  for (size_t v = 0; v < attrib.vertices.size() / 3; v++) {
+    printf("  v[%ld] = (%f, %f, %f)\n", static_cast<long>(v),
+           static_cast<const double>(attrib.vertices[3 * v + 0]),
+           static_cast<const double>(attrib.vertices[3 * v + 1]),
+           static_cast<const double>(attrib.vertices[3 * v + 2]));
+  }
+
+  for (size_t v = 0; v < attrib.normals.size() / 3; v++) {
+    printf("  n[%ld] = (%f, %f, %f)\n", static_cast<long>(v),
+           static_cast<const double>(attrib.normals[3 * v + 0]),
+           static_cast<const double>(attrib.normals[3 * v + 1]),
+           static_cast<const double>(attrib.normals[3 * v + 2]));
+  }
+
+  for (size_t v = 0; v < attrib.texcoords.size() / 2; v++) {
+    printf("  uv[%ld] = (%f, %f)\n", static_cast<long>(v),
+           static_cast<const double>(attrib.texcoords[2 * v + 0]),
+           static_cast<const double>(attrib.texcoords[2 * v + 1]));
+  }
+
+  // For each shape
+  for (size_t i = 0; i < shapes.size(); i++) {
+    printf("shape[%ld].name = %s\n", static_cast<long>(i),
+           shapes[i].name.c_str());
+    printf("Size of shape[%ld].indices: %lu\n", static_cast<long>(i),
+           static_cast<unsigned long>(shapes[i].mesh.indices.size()));
+
+    size_t index_offset = 0;
+
+    assert(shapes[i].mesh.num_face_vertices.size() == shapes[i].mesh.material_ids.size());
+
+    printf("shape[%ld].num_faces: %lu\n", static_cast<long>(i),
+           static_cast<unsigned long>(shapes[i].mesh.num_face_vertices.size()));
+
+    // For each face
+    for (size_t f = 0; f < shapes[i].mesh.num_face_vertices.size(); f++) {
+      size_t fnum = shapes[i].mesh.num_face_vertices[f];
+
+      printf("  face[%ld].fnum = %ld\n", static_cast<long>(f),
+             static_cast<unsigned long>(fnum));
+
+      // For each vertex in the face
+      for (size_t v = 0; v < fnum; v++) {
+        tinyobj::index_t idx = shapes[i].mesh.indices[index_offset + v];
+        printf("    face[%ld].v[%ld].idx = %d/%d/%d\n", static_cast<long>(f),
+               static_cast<long>(v), idx.vertex_index, idx.normal_index,
+               idx.texcoord_index);
+      }
+
+      printf("  face[%ld].material_id = %d\n", static_cast<long>(f),
+             shapes[i].mesh.material_ids[f]);
+
+      index_offset += fnum;
+    }
+
+    printf("shape[%ld].num_tags: %lu\n", static_cast<long>(i),
+           static_cast<unsigned long>(shapes[i].mesh.tags.size()));
+    for (size_t t = 0; t < shapes[i].mesh.tags.size(); t++) {
+      printf("  tag[%ld] = %s ", static_cast<long>(t),
+             shapes[i].mesh.tags[t].name.c_str());
+      printf(" ints: [");
+      for (size_t j = 0; j < shapes[i].mesh.tags[t].intValues.size(); ++j) {
+        printf("%ld", static_cast<long>(shapes[i].mesh.tags[t].intValues[j]));
+        if (j < (shapes[i].mesh.tags[t].intValues.size() - 1)) {
+          printf(", ");
+        }
+      }
+      printf("]");
+
+      printf(" floats: [");
+      for (size_t j = 0; j < shapes[i].mesh.tags[t].floatValues.size(); ++j) {
+        printf("%f", static_cast<const double>(
+                         shapes[i].mesh.tags[t].floatValues[j]));
+        if (j < (shapes[i].mesh.tags[t].floatValues.size() - 1)) {
+          printf(", ");
+        }
+      }
+      printf("]");
+
+      printf(" strings: [");
+      for (size_t j = 0; j < shapes[i].mesh.tags[t].stringValues.size(); ++j) {
+        printf("%s", shapes[i].mesh.tags[t].stringValues[j].c_str());
+        if (j < (shapes[i].mesh.tags[t].stringValues.size() - 1)) {
+          printf(", ");
+        }
+      }
+      printf("]");
+      printf("\n");
+    }
+  }
+
+  for (size_t i = 0; i < materials.size(); i++) {
+    printf("material[%ld].name = %s\n", static_cast<long>(i),
+           materials[i].name.c_str());
+    printf("  material.Ka = (%f, %f ,%f)\n",
+           static_cast<const double>(materials[i].ambient[0]),
+           static_cast<const double>(materials[i].ambient[1]),
+           static_cast<const double>(materials[i].ambient[2]));
+    printf("  material.Kd = (%f, %f ,%f)\n",
+           static_cast<const double>(materials[i].diffuse[0]),
+           static_cast<const double>(materials[i].diffuse[1]),
+           static_cast<const double>(materials[i].diffuse[2]));
+    printf("  material.Ks = (%f, %f ,%f)\n",
+           static_cast<const double>(materials[i].specular[0]),
+           static_cast<const double>(materials[i].specular[1]),
+           static_cast<const double>(materials[i].specular[2]));
+    printf("  material.Tr = (%f, %f ,%f)\n",
+           static_cast<const double>(materials[i].transmittance[0]),
+           static_cast<const double>(materials[i].transmittance[1]),
+           static_cast<const double>(materials[i].transmittance[2]));
+    printf("  material.Ke = (%f, %f ,%f)\n",
+           static_cast<const double>(materials[i].emission[0]),
+           static_cast<const double>(materials[i].emission[1]),
+           static_cast<const double>(materials[i].emission[2]));
+    printf("  material.Ns = %f\n",
+           static_cast<const double>(materials[i].shininess));
+    printf("  material.Ni = %f\n", static_cast<const double>(materials[i].ior));
+    printf("  material.dissolve = %f\n",
+           static_cast<const double>(materials[i].dissolve));
+    printf("  material.illum = %d\n", materials[i].illum);
+    printf("  material.map_Ka = %s\n", materials[i].ambient_texname.c_str());
+    printf("  material.map_Kd = %s\n", materials[i].diffuse_texname.c_str());
+    printf("  material.map_Ks = %s\n", materials[i].specular_texname.c_str());
+    printf("  material.map_Ns = %s\n",
+           materials[i].specular_highlight_texname.c_str());
+    printf("  material.map_bump = %s\n", materials[i].bump_texname.c_str());
+    printf("    bump_multiplier = %f\n", static_cast<const double>(materials[i].bump_texopt.bump_multiplier));
+    printf("  material.map_d = %s\n", materials[i].alpha_texname.c_str());
+    printf("  material.disp = %s\n", materials[i].displacement_texname.c_str());
+    printf("  <<PBR>>\n");
+    printf("  material.Pr     = %f\n", static_cast<const double>(materials[i].roughness));
+    printf("  material.Pm     = %f\n", static_cast<const double>(materials[i].metallic));
+    printf("  material.Ps     = %f\n", static_cast<const double>(materials[i].sheen));
+    printf("  material.Pc     = %f\n", static_cast<const double>(materials[i].clearcoat_thickness));
+    printf("  material.Pcr    = %f\n", static_cast<const double>(materials[i].clearcoat_thickness));
+    printf("  material.aniso  = %f\n", static_cast<const double>(materials[i].anisotropy));
+    printf("  material.anisor = %f\n", static_cast<const double>(materials[i].anisotropy_rotation));
+    printf("  material.map_Ke = %s\n", materials[i].emissive_texname.c_str());
+    printf("  material.map_Pr = %s\n", materials[i].roughness_texname.c_str());
+    printf("  material.map_Pm = %s\n", materials[i].metallic_texname.c_str());
+    printf("  material.map_Ps = %s\n", materials[i].sheen_texname.c_str());
+    printf("  material.norm   = %s\n", materials[i].normal_texname.c_str());
+    std::map<std::string, std::string>::const_iterator it(
+        materials[i].unknown_parameter.begin());
+    std::map<std::string, std::string>::const_iterator itEnd(
+        materials[i].unknown_parameter.end());
+
+    for (; it != itEnd; it++) {
+      printf("  material.%s = %s\n", it->first.c_str(), it->second.c_str());
+    }
+    printf("\n");
+  }
 }

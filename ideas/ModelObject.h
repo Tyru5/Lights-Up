@@ -11,85 +11,78 @@
 #include <string>
 #include <vector>
 #include <Eigen/Dense>
+#include "Face.h"
 
-// namespace:
+using std::string;
+using std::vector;
 using Eigen::MatrixXd;
-using Eigen::VectorXd;
+
 
 class ModelObject{
 
  public:
   // construtor:
-  ModelObject(){};
+ ModelObject( const string& _obj_file, const double _tx, const double& _ty, const double& _tz, const double& _wx, const double& _wy, const double& _wz, const double& _theta ):
+  obj_file( _obj_file )
+  ,tx( _tx )
+  ,ty( _ty )
+  ,tz( _tz )
+  ,wx( _wx )
+  ,wy( _wy )
+  ,wz( _wz )
+  ,theta( _theta )
+  {};
+
   
-  // accessors + mutators:
-  int get_verticies()const;
-  int get_faces()    const;
-  double get_min_x() const;
-  double get_max_x() const;
-  double get_min_y() const;
-  double get_max_y() const;
-  double get_min_z() const;
-  double get_max_z() const;
+  // pprint member function:
+  void pprint(ostream& out = cout) const;
 
-  VectorXd get_xes();
-  VectorXd get_whys();
-  VectorXd get_zeezs();
+  // Member functions:
+  void parseObj();
+
+  const int getFaces() const{
+    return number_of_faces;
+  }
+
+  const int getVerts() const{
+    return number_of_vertices;
+  }
   
-  MatrixXd get_main_vertex_list() const;
-
-  // =======================
-  void set_vertex_list(const MatrixXd& val);
-  void set_faces_list(const MatrixXd& val);
-
-  void set_verticies(const int& val);
-  void set_faces(const int& val);
-  // =======================
+  const int getVNorms() const{
+    return number_of_vertices_norm;
+  }
   
-  // member functions:
+ protected:
+  string obj_file;
 
-  void print_vertex_list() const;
+  /* For translatoin / transformation and axis angle rotation */
+  double tx;
+  double ty;
+  double tz;
 
-  double mean_vertex_x();
-  double mean_vertex_y();
-  double mean_vertex_z();
+  double wx;
+  double wy;
+  double wz;
+  double theta;
 
-  void find_max_min_x();
-  void find_max_min_y();
-  void find_max_min_z();
+  // v's
+  int number_of_vertices;
+  MatrixXd vertices;
 
-  void print_faces_list() const;
-  void extract_x_verts();
-  void extract_y_verts();
-  void extract_z_verts();
+  // vn's
+  int number_of_vertices_norm;
+  MatrixXd nertices;
 
-  double std_dev(const VectorXd& list);
+  // faces -- not really sure yet:
+  int number_of_faces;
+  vector<Face> F;
+
   
-  // class instance variables:
- private:
-  int obj_verticies;
-  int obj_faces;
-  
-  double total_x; /*Holds the total sum of all the x,y,z verticies*/
-  double total_y;
-  double total_z;
-
-  double min_x;
-  double max_x;
-
-  double min_y;
-  double max_y;
-
-  double min_z;
-  double max_z;
-
-  VectorXd xes;
-  VectorXd whys;
-  VectorXd zeezs;
-
-  MatrixXd vertex_list;
-  MatrixXd faces_list;
-
 };
+
+
+// output stream overloading:
+ostream& operator<< (ostream& out, const ModelObject& m);
+
 
 #endif //MODELOBJECT_H_INCLUDE

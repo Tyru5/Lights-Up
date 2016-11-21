@@ -71,7 +71,7 @@ int main(int argc, char *argv[]){
   
   // camera.raySphereIntersection();
 
-  camera.writeImage( argv[2] );
+  // camera.writeImage( argv[2] );
   
   return 0;
 }

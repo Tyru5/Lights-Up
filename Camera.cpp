@@ -180,7 +180,6 @@ void Camera::parseScene( const string& scene_file ){
     // Now for each model, parse it and assign faces with cooresponding material props:
     for( int i =0; i < static_cast<int>(modelObject_list.size()); i++){
       modelObject_list[i].parseObj();
-      cout << "model(s) verts: " << modelObject_list[i].getVerts() << "\nfaces: " << modelObject_list[i].getFaces() << "\nverts-norm: " << modelObject_list[i].getVNorms() << endl;
     }
     
   } // end of if

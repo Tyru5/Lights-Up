@@ -5,18 +5,24 @@
 #ifndef MODELOBJECT_H_INCLUDE
 #define MODELOBJECT_H_INCLUDE
 
-
 // directives:
 #include <iostream>
 #include <string>
 #include <vector>
+#include <cassert>
+#include <cstdio>
+#include <cstdlib>
+#include <fstream>
+#include <sstream>
 #include <Eigen/Dense>
 #include "Face.h"
 
+/* Using tinyobjloader from syoyo*/
+#include "tiny_obj_loader.h"
+
+
 using std::string;
 using std::vector;
-using Eigen::MatrixXd;
-
 
 class ModelObject{
 
@@ -39,21 +45,19 @@ class ModelObject{
 
   // Member functions:
   void parseObj();
+  void PrintInfo(const tinyobj::attrib_t& attrib,
+           const std::vector<tinyobj::shape_t>& shapes,
+	   const std::vector<tinyobj::material_t>& materials)const;
 
-  const int getFaces() const{
-    return number_of_faces;
-  }
-
-  const int getVerts() const{
-    return number_of_vertices;
-  }
-  
-  const int getVNorms() const{
-    return number_of_vertices_norm;
-  }
   
  protected:
+  /* For parsing obj file(s)*/
   string obj_file;
+  tinyobj::attrib_t attrib;
+  vector<tinyobj::shape_t> shapes;
+  vector<tinyobj::material_t> materials;
+  string err;
+
 
   /* For translatoin / transformation and axis angle rotation */
   double tx;
@@ -65,19 +69,6 @@ class ModelObject{
   double wz;
   double theta;
 
-  // v's
-  int number_of_vertices;
-  MatrixXd vertices;
-
-  // vn's
-  int number_of_vertices_norm;
-  MatrixXd nertices;
-
-  // faces -- not really sure yet:
-  int number_of_faces;
-  vector<Face> F;
-
-  
 };
 
 
