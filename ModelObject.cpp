@@ -61,13 +61,10 @@ void ModelObject::parseObj(){
 
 /* ~Important note~
    I used this function and modified it for my own needs from syoyo @ https://github.com/syoyo/tinyobjloader
-
    - syoyo matains the project: Tiny Obj Loader, Tiny but powerful singile file wavefront obj loader program. 
 
 */
-void ModelObject::PrintInfo(const tinyobj::attrib_t& attrib,
-			    const std::vector<tinyobj::shape_t>& shapes,
-			    const std::vector<tinyobj::material_t>& materials) const{
+void ModelObject::PrintInfo() const{
   cout << "# of vertices  : " << (attrib.vertices.size() / 3) << endl;
   cout << "# of normals   : " << (attrib.normals.size() / 3)  << endl;
   cout << "# of texcoords : " << (attrib.texcoords.size() / 2) <<endl;
@@ -228,3 +225,178 @@ void ModelObject::PrintInfo(const tinyobj::attrib_t& attrib,
     printf("\n");
   }
 }
+
+
+void ModelObject::getFaces(){
+
+  // Allocate right amount of space for verts,verts-norm,faces:
+  // r x c
+  vertices.resize( static_cast<int>( (attrib.vertices.size() / 3) ), 3);
+  int row_count = 0;
+  for(int v = 0; v < static_cast<int>( (attrib.vertices.size() / 3) ); v++){
+    vertices(row_count,0) = attrib.vertices[3 * v + 0];
+    vertices(row_count,1) = attrib.vertices[3 * v + 1];
+    vertices(row_count,2) = attrib.vertices[3 * v + 2];      
+    row_count++;
+  }
+
+  cout << vertices<< endl;
+
+  // int row_count = 0;
+  // size_t index_offset = 0;
+
+  // // For each face
+  // for (size_t f = 0; f < shapes[f].mesh.num_face_vertices.size(); f++) {
+  //   size_t fnum = shapes[f].mesh.num_face_vertices[f];
+    
+  //   //printf("  face[%ld].fnum = %ld\n", static_cast<long>(f), static_cast<unsigned long>(fnum));
+    
+  //   // For each vertex in the face
+  //   for (size_t v = 0; v < fnum; v++) {
+  //     tinyobj::index_t idx = shapes[f].mesh.indices[index_offset + v];
+  //     vertices(row_count,0) = idx.vertex_index;
+  //     vertices(row_count,1) = idx.vertex_index;
+  //     vertices(row_count,2) = idx.vertex_index;      
+  //     row_count++;
+  //     /*
+  //     printf("    face[%ld].v[%ld].idx = %d/%d/%d\n", static_cast<long>(f),
+  // 	     static_cast<long>(v), idx.vertex_index, idx.normal_index,
+  // 	     idx.texcoord_index);
+  //     */
+  //   }
+    
+  //   // printf("  face[%ld].material_id = %d\n", static_cast<long>(f), shapes[i].mesh.material_ids[f]);
+    
+  //   index_offset += fnum;
+  // }
+
+  
+}
+
+void ModelObject::rayTriangleIntersection( const int& width, const int& height ){ // Essentially res.
+
+  // allocate space for ts:
+  ts = vector< vector< double > >(width, vector<double>( height, -1.0)  );
+
+  // print_ts(ts);
+  // cout << "\n" << endl;
+ 
+  getFaces();
+ 
+  // for(int i = 0; i < shapes[i].mesh.num_face_vertices.size(); i++){
+  //   computeDist( face.getFace(i) );
+  // }
+
+  // print_ts(ts);
+
+}
+
+// Algorithm for Ray Triangle Intersection:
+// void ModelObject::computeDist(){
+
+//   /*For each pixel, throw ray out of focal point
+//     and calculate colour along ray;
+//     Fill in pixel value;
+//   */
+
+//   double beta;
+//   double gamma;
+//   double t;
+  
+//   Vector3d O(0,0,0);
+//   Vector3d D(0,0,0); // origin, direction
+  
+//   Vector3d A(0,0,0);
+//   Vector3d B(0,0,0);
+//   Vector3d C(0,0,0); // face vertices
+
+//   Matrix3d mtm(3,3);
+//   Matrix3d Mx1,Mx2,Mx3;
+//   double detMTM, detMTM1, detMTM2, detMTM3;
+  
+ 
+
+//   // cout << faces << endl;
+  
+//   for(int i = 0; i < width; i++){ // for each pixel on the image plane...
+//     for(int c = 0; c < height; c++){
+      
+//       O = Rays[i][c].origin;
+//       // cout << "O = \n" << O << endl;
+//       D = Rays[i][c].direction;
+//       // cout << "D = \n" << D << endl;
+      
+     
+//       A = current_face.getA();
+//       // cout << "A = \n" << A << endl;
+//       B = current_face.getB();
+//       // cout << "B = \n" << B << endl;
+//       C = current_face.getC();
+//       // cout << "C = \n" << C << endl;
+      
+//       // Find vectors for two edges sharing V1 (which is A in my case):
+//       Vector3d AB = A-B;
+//       Vector3d AC = A-C;
+//       Vector3d al = A-O;
+      
+//       mtm.col(0) = AB;
+//       mtm.col(1) = AC;
+//       mtm.col(2) = D;
+      
+//       // cout << mtm << endl;
+      
+//       detMTM = mtm.determinant();
+      
+//       Mx1 = mtm;
+//       Mx2 = mtm;
+//       Mx3 = mtm;
+      
+//       Mx1.col(0) = al;  
+//       detMTM1 = Mx1.determinant();
+      
+//       Mx2.col(1) = al;
+//       detMTM2 = Mx2.determinant();
+      
+//       Mx3.col(2) = al;
+//       detMTM3 = Mx3.determinant();
+      
+//       beta  = detMTM1/detMTM;
+//       // cout << "Beta: " << beta << endl;      
+//       gamma = detMTM2/detMTM;
+//       // cout << "Gamma: " << gamma << endl;
+//       t     = detMTM3/detMTM;
+//       // cout << " computed t: = " << t << endl;
+
+//       // ADDED: Early break cases:
+//       if( beta > 0.0 || gamma < 0.0 ) break;
+//       if( beta+gamma > 1.0) break;
+//       if( t < 0.0 ) break;
+      
+//       // Error Checking:
+//       if( beta >= 0.0 && gamma >= 0.0 && (beta+gamma <= 1.0) && t >= 0.0){ // ray intersect!
+// 	// cout << "Ray intersected with face!" << endl;
+// 	// cout << " computed t intersected: = " << t << endl;
+// 	// cout << "Beta: " << beta << endl;
+// 	// cout << "Gamma: " << gamma << endl;
+	
+// 	// checking t val:
+// 	if( t <= ts[i][c] || ts[i][c] == -1.0){
+// 	  ts[i][c] = t;
+// 	}
+	
+//       }
+      
+//     }// end inner for loop.
+//   }// end outer for loop.
+
+// }
+
+
+// void ModelObject::print_ts(const vector<vector<double>>& vect){
+//   for(int i =  0; i < width; i++){
+//     for(int c = 0; c < height; c++){
+//       cout << vect[i][c] << " ";
+//     }
+//     cout << endl;
+//   }
+// }

@@ -23,6 +23,7 @@
 
 using std::string;
 using std::vector;
+using Eigen::MatrixXd;
 
 class ModelObject{
 
@@ -45,9 +46,11 @@ class ModelObject{
 
   // Member functions:
   void parseObj();
-  void PrintInfo(const tinyobj::attrib_t& attrib,
-           const std::vector<tinyobj::shape_t>& shapes,
-	   const std::vector<tinyobj::material_t>& materials)const;
+  void PrintInfo()const;
+  void getFaces();
+  void rayTriangleIntersection(const int& width, const int& height);
+  void computeDist();
+  void print_ts(const vector<vector<double>>& vect);
 
   
  protected:
@@ -68,6 +71,12 @@ class ModelObject{
   double wy;
   double wz;
   double theta;
+
+  MatrixXd vertices;
+  vector<Face> F;
+
+  // 2d array to hold all t's:
+  vector<vector< double > > ts; 
 
 };
 

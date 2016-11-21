@@ -4,15 +4,9 @@
 
 
 // directives:
-#include <iostream>
-#include <string>
-#include <vector>
 #include <fstream> // Stream class to both read and write from/to files.
 #include <sstream>
-#include <tuple>
-#include <Eigen/Dense>
 #include <algorithm> // std::max
-#include <Eigen/Geometry> // for cross product of vectors.
 #include "Camera.h"
 
 // namespace:
@@ -180,6 +174,8 @@ void Camera::parseScene( const string& scene_file ){
     // Now for each model, parse it and assign faces with cooresponding material props:
     for( int i =0; i < static_cast<int>(modelObject_list.size()); i++){
       modelObject_list[i].parseObj();
+      // modelObject_list[i].PrintInfo();
+      modelObject_list[i].rayTriangleIntersection( width, height );
     }
     
   } // end of if
@@ -241,137 +237,10 @@ void Camera::calculateRays(){
       Rays[i][j] =  Ray( pixelPoint, rayd );
       // Rays[i][j].pprint();
       
-      
     }
   }
 
 }
-
-// Algorithm for Ray Triangle Intersection:
-void Camera::computeDist(const Face& current_face){
-
-  /*For each pixel, throw ray out of focal point
-    and calculate colour along ray;
-    Fill in pixel value;
-  */
-
-  // int num_faces = obj.get_faces();
-  // cout << "Polygon count: " << num_faces << endl;
-  
-  double beta;
-  double gamma;
-  double t;
-  
-  Vector3d O(0,0,0);
-  Vector3d D(0,0,0); // origin, direction
-  
-  Vector3d A(0,0,0);
-  Vector3d B(0,0,0);
-  Vector3d C(0,0,0); // face vertices
-
-  Matrix3d mtm(3,3);
-  Matrix3d Mx1,Mx2,Mx3;
-  double detMTM, detMTM1, detMTM2, detMTM3;
-  
- 
-
-  // cout << faces << endl;
-  
-  for(int i = 0; i < width; i++){ // for each pixel on the image plane...
-    for(int c = 0; c < height; c++){
-      
-      O = Rays[i][c].origin;
-      // cout << "O = \n" << O << endl;
-      D = Rays[i][c].direction;
-      // cout << "D = \n" << D << endl;
-      
-     
-      A = current_face.getA();
-      // cout << "A = \n" << A << endl;
-      B = current_face.getB();
-      // cout << "B = \n" << B << endl;
-      C = current_face.getC();
-      // cout << "C = \n" << C << endl;
-      
-      // Find vectors for two edges sharing V1 (which is A in my case):
-      Vector3d AB = A-B;
-      Vector3d AC = A-C;
-      Vector3d al = A-O;
-      
-      mtm.col(0) = AB;
-      mtm.col(1) = AC;
-      mtm.col(2) = D;
-      
-      // cout << mtm << endl;
-      
-      detMTM = mtm.determinant();
-      
-      Mx1 = mtm;
-      Mx2 = mtm;
-      Mx3 = mtm;
-      
-      Mx1.col(0) = al;  
-      detMTM1 = Mx1.determinant();
-      
-      Mx2.col(1) = al;
-      detMTM2 = Mx2.determinant();
-      
-      Mx3.col(2) = al;
-      detMTM3 = Mx3.determinant();
-      
-      beta  = detMTM1/detMTM;
-      // cout << "Beta: " << beta << endl;      
-      gamma = detMTM2/detMTM;
-      // cout << "Gamma: " << gamma << endl;
-      t     = detMTM3/detMTM;
-      // cout << " computed t: = " << t << endl;
-
-      // ADDED: Early break cases:
-      if( beta > 0.0 || gamma < 0.0 ) break;
-      if( beta+gamma > 1.0) break;
-      if( t < 0.0 ) break;
-      
-      // Error Checking:
-      if( beta >= 0.0 && gamma >= 0.0 && (beta+gamma <= 1.0) && t >= 0.0){ // ray intersect!
-	// cout << "Ray intersected with face!" << endl;
-	// cout << " computed t intersected: = " << t << endl;
-	// cout << "Beta: " << beta << endl;
-	// cout << "Gamma: " << gamma << endl;
-	
-	// checking t val:
-	if( t <= ts[i][c] || ts[i][c] == -1.0){
-	  ts[i][c] = t;
-	}
-	
-      }
-      
-    }// end inner for loop.
-  }// end outer for loop.
-
-}
-
-
-void Camera::rayTriangleIntersection(const ModelObject& obj, const Face& face){
-
-  // int number_of_faces = obj.get_faces();
-  // allocate space for ts:
-  ts = vector< vector< double > >(width, vector<double>( height, -1.0)  );
-
-  // print_ts(ts);
-  // cout << "\n" << endl;
-  
-  //for(int i = 0; i < number_of_faces; i++){
-  // cout << face.getFace(i) << endl;
-  //computeDist( face.getFace(i) );
-  //}
-
-  // print_ts(ts);
-  // cout << "Polygon count: " << number_of_faces << endl;
-  find_tmin_tmax(ts); // THIS FIXED THE TMIN AND TMAX BUG
-  cout << "Depth t runs from " << tmin << " " << tmax << endl;
-  
-}
-
 
 // void Camera::raySphereIntersection() {
 
@@ -463,16 +332,6 @@ void Camera::writeImage( const string& out_file ){
 
 
 // ==================HELPER FUNCTIONS=========================
-
-void Camera::print_ts(const vector<vector<double>>& vect){
-  for(int i =  0; i < width; i++){
-    for(int c = 0; c < height; c++){
-      cout << vect[i][c] << " ";
-    }
-    cout << endl;
-  }
-}
-
 void Camera::find_tmin_tmax(std::vector<std::vector<double>>& tvals){
 
   for(int i = 0; i < width; i++){

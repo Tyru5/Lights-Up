@@ -11,6 +11,7 @@
 #include <limits>
 #include <tuple> 
 #include <Eigen/Dense>
+#include <Eigen/Geometry> // for cross product of vectors.
 #include "ModelObject.h"
 #include "Ray.h"
 #include "Face.h"
@@ -109,10 +110,7 @@ class Camera{
   double height;
 
   // array of rays hey...
-  vector< std::vector< Ray > > Rays;
-
-  // 2d array to hold all t's:
-  std::vector< std::vector< double > > ts; 
+  vector< vector< Ray > > Rays;
 
 
   // TESTING:
