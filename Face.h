@@ -21,19 +21,19 @@ class Face{
 
  public:
   // Default Constructor:
- Face(): A(0),B(0),C(0){};
- Face(const double& A_, const double& B_, const double& C_): A(A_),B(B_),C(C_){};
+ Face(): A(0.0),B(0.0),C(0.0), material( Matrix3d::Zero() ){};
+ Face(const double& A_, const double& B_, const double& C_, const Matrix3d& _material): A(A_),B(B_),C(C_),material(_material){};
 
 
   // Member functions:
-  void map(const MatrixXd& mat);
+  void map(const MatrixXd& mat, const Matrix3d& fm);
   void pprint(ostream& out = cout) const;
   void addFace(const Face& f);
   Face getFace(const int& index) const;
   
-  Vector3d getA() const;
-  Vector3d getB() const;
-  Vector3d getC() const;
+  const Vector3d getA() const;
+  const Vector3d getB() const;
+  const Vector3d getC() const;
   
   // copy assignment operator: 1 of the BIG THREE
   // This doesn't really make sense yet...
@@ -51,6 +51,7 @@ class Face{
   double A;
   double B;
   double C;
+  Matrix3d material;
 
   Matrix3d mvil;
 

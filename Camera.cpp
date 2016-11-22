@@ -174,7 +174,7 @@ void Camera::parseScene( const string& scene_file ){
     // Now for each model, parse it and assign faces with cooresponding material props:
     for( int i =0; i < static_cast<int>(modelObject_list.size()); i++){
       modelObject_list[i].parseObj();
-      // modelObject_list[i].PrintInfo();
+      if(DEBUG) modelObject_list[i].PrintInfo();
       modelObject_list[i].rayTriangleIntersection( width, height );
     }
     

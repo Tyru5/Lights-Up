@@ -24,6 +24,7 @@
 using std::string;
 using std::vector;
 using Eigen::MatrixXd;
+using Eigen::Matrix3d;
 
 class ModelObject{
 
@@ -47,6 +48,7 @@ class ModelObject{
   // Member functions:
   void parseObj();
   void PrintInfo()const;
+  void getVertices();
   void getFaces();
   void rayTriangleIntersection(const int& width, const int& height);
   void computeDist();
@@ -74,6 +76,8 @@ class ModelObject{
 
   MatrixXd vertices;
   vector<Face> F;
+
+  Matrix3d face_material;
 
   // 2d array to hold all t's:
   vector<vector< double > > ts; 

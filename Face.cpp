@@ -4,10 +4,6 @@
 
 
 // directives:
-#include <iostream>
-#include <string>
-#include <vector>
-#include <Eigen/Dense>
 #include "Face.h"
 
 // namespace:
@@ -19,9 +15,10 @@ using Eigen::Vector3d;
 // Macros:
 #define DEBUG false
 
-void Face::map(const MatrixXd& mat){
+void Face::map(const MatrixXd& mat, const Matrix3d& fm){
 
   mvil.resize(3,3);
+  material.resize(3,3);
 
   /*
   cout << "this is A \n" << A << endl;
@@ -36,8 +33,9 @@ void Face::map(const MatrixXd& mat){
   mvil.col(0) = mat.row(A).transpose();
   mvil.col(1) = mat.row(B).transpose();
   mvil.col(2) = mat.row(C).transpose();
-
   // cout << mvil << endl;
+
+  material = fm;
 
 }
 
@@ -46,6 +44,7 @@ void Face::pprint(ostream& out) const{
   // print off vertex list:
   out << "mapped vertex list: " << endl;
   out << mvil << endl;
+  out << "With this associated material: \n" << material << endl;
 }
 
 
@@ -54,15 +53,15 @@ ostream& operator<< (ostream& out, const Face& f){
   return out;
 }
 
-Vector3d Face::getA() const{
+const Vector3d Face::getA() const{
   return mvil.col(0);
 }
 
-Vector3d Face::getB() const{
+const Vector3d Face::getB() const{
   return mvil.col(1);
 }
 
-Vector3d Face::getC() const{
+const Vector3d Face::getC() const{
   return mvil.col(2);
 }
 
@@ -73,3 +72,4 @@ void Face::addFace(const Face& f){
 Face Face::getFace(const int& index) const{
   return Faces[index];
 }
+

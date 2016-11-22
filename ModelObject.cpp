@@ -29,8 +29,9 @@ More information may be found here: https://syoyo.github.io/tinyobjloader/
 // namespace
 using namespace std;
 
+
 // Macros:
-#define DEBUG true
+#define DEBUG false
 
 
 void ModelObject::pprint(ostream& out) const{
@@ -227,7 +228,7 @@ void ModelObject::PrintInfo() const{
 }
 
 
-void ModelObject::getFaces(){
+void ModelObject::getVertices(){
 
   // Allocate right amount of space for verts,verts-norm,faces:
   // r x c
@@ -240,37 +241,64 @@ void ModelObject::getFaces(){
     row_count++;
   }
 
-  cout << vertices<< endl;
-
-  // int row_count = 0;
-  // size_t index_offset = 0;
-
-  // // For each face
-  // for (size_t f = 0; f < shapes[f].mesh.num_face_vertices.size(); f++) {
-  //   size_t fnum = shapes[f].mesh.num_face_vertices[f];
-    
-  //   //printf("  face[%ld].fnum = %ld\n", static_cast<long>(f), static_cast<unsigned long>(fnum));
-    
-  //   // For each vertex in the face
-  //   for (size_t v = 0; v < fnum; v++) {
-  //     tinyobj::index_t idx = shapes[f].mesh.indices[index_offset + v];
-  //     vertices(row_count,0) = idx.vertex_index;
-  //     vertices(row_count,1) = idx.vertex_index;
-  //     vertices(row_count,2) = idx.vertex_index;      
-  //     row_count++;
-  //     /*
-  //     printf("    face[%ld].v[%ld].idx = %d/%d/%d\n", static_cast<long>(f),
-  // 	     static_cast<long>(v), idx.vertex_index, idx.normal_index,
-  // 	     idx.texcoord_index);
-  //     */
-  //   }
-    
-  //   // printf("  face[%ld].material_id = %d\n", static_cast<long>(f), shapes[i].mesh.material_ids[f]);
-    
-  //   index_offset += fnum;
-  // }
-
+  if(DEBUG) cout << "vertices = \n" << vertices<< endl;
   
+}
+
+void ModelObject::getFaces(){
+  
+  // Allocate right amount of space for verts,verts-norm,faces:
+  F = vector< Face >( shapes[0].mesh.num_face_vertices.size() ); // zero b/c only one shape will ever be in it.
+  vector<double> index_holder(3);
+
+  double index;
+  face_material.resize(3,3);
+  size_t index_offset = 0;
+
+  // For each face
+  for (size_t f = 0; f < shapes[0].mesh.num_face_vertices.size(); f++) { // could be zero because only ever 1 shape
+    int material_row_counter = 0;
+    size_t fnum = shapes[0].mesh.num_face_vertices[f]; // could be zero because only ever 1 shape
+
+    // For each vertex in the face
+    for (size_t v = 0; v < fnum; v++) {
+      tinyobj::index_t idx = shapes[0].mesh.indices[index_offset + v];
+      index = idx.vertex_index;
+      index_holder[v] = index;
+      /*
+      printf("    face[%ld].v[%ld].idx = %d/%d/%d\n", static_cast<long>(f),
+  	     static_cast<long>(v), idx.vertex_index, idx.normal_index,
+  	     idx.texcoord_index);
+      */
+    }
+    
+    if(DEBUG) cout << "material for face " << f << " = " << materials[ shapes[0].mesh.material_ids[f] ].diffuse[2] << endl;
+
+    // cout << "reading ambient..." << endl;
+    face_material(material_row_counter, 0) =  materials[ shapes[0].mesh.material_ids[f] ].ambient[0];
+    face_material(material_row_counter, 1) =  materials[ shapes[0].mesh.material_ids[f] ].ambient[1];
+    face_material(material_row_counter, 2) =  materials[ shapes[0].mesh.material_ids[f] ].ambient[2];
+    material_row_counter++;    
+    //cout << "reading diffuse..."<< endl;
+    face_material(material_row_counter, 0) =  materials[ shapes[0].mesh.material_ids[f] ].diffuse[0];
+    face_material(material_row_counter, 1) =  materials[ shapes[0].mesh.material_ids[f] ].diffuse[1];
+    face_material(material_row_counter, 2) =  materials[ shapes[0].mesh.material_ids[f] ].diffuse[2];
+    material_row_counter++;
+    // cout << "reading specular..."<< endl;
+    face_material(material_row_counter, 0) =  materials[ shapes[0].mesh.material_ids[f] ].specular[0];
+    face_material(material_row_counter, 1) =  materials[ shapes[0].mesh.material_ids[f] ].specular[1];
+    face_material(material_row_counter, 2) =  materials[ shapes[0].mesh.material_ids[f] ].specular[2];
+    if(DEBUG) cout << "k matrix is = " << face_material << endl;
+
+    F[f] = Face( index_holder[0], index_holder[1], index_holder[2], face_material );
+    F[f].map( vertices, face_material );
+    if(DEBUG) cout << F[f];
+    
+    
+    index_offset += fnum;
+  }
+
+
 }
 
 void ModelObject::rayTriangleIntersection( const int& width, const int& height ){ // Essentially res.
@@ -280,9 +308,12 @@ void ModelObject::rayTriangleIntersection( const int& width, const int& height )
 
   // print_ts(ts);
   // cout << "\n" << endl;
- 
+
+  /*1st, map vertices to faces*/
+  getVertices();
   getFaces();
  
+  /*2nd, find 't' (or how much to travel out the ray)*/
   // for(int i = 0; i < shapes[i].mesh.num_face_vertices.size(); i++){
   //   computeDist( face.getFace(i) );
   // }
