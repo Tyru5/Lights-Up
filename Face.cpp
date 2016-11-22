@@ -65,10 +65,6 @@ const Vector3d Face::getC() const{
   return mvil.col(2);
 }
 
-void Face::addFace(const Face& f){
-  Faces.push_back(f);
-}
-
 Face Face::getFace(const int& index) const{
   return Faces[index];
 }

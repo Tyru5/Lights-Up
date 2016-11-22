@@ -15,6 +15,7 @@
 #include <fstream>
 #include <sstream>
 #include <Eigen/Dense>
+#include "Ray.h"
 #include "Face.h"
 
 /* Using tinyobjloader from syoyo*/
@@ -78,9 +79,6 @@ class ModelObject{
   vector<Face> F;
 
   Matrix3d face_material;
-
-  // 2d array to hold all t's:
-  vector<vector< double > > ts; 
 
 };
 

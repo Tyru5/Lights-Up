@@ -28,7 +28,6 @@ class Face{
   // Member functions:
   void map(const MatrixXd& mat, const Matrix3d& fm);
   void pprint(ostream& out = cout) const;
-  void addFace(const Face& f);
   Face getFace(const int& index) const;
   
   const Vector3d getA() const;
@@ -54,8 +53,6 @@ class Face{
   Matrix3d material;
 
   Matrix3d mvil;
-
-  std::vector< Face > Faces;
 
 };
 

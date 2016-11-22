@@ -246,6 +246,10 @@ void ModelObject::getVertices(){
 }
 
 void ModelObject::getFaces(){
+
+  /*1st, get vertices*/
+  getVertices();
+
   
   // Allocate right amount of space for verts,verts-norm,faces:
   F = vector< Face >( shapes[0].mesh.num_face_vertices.size() ); // zero b/c only one shape will ever be in it.
@@ -303,124 +307,113 @@ void ModelObject::getFaces(){
 
 void ModelObject::rayTriangleIntersection( const int& width, const int& height ){ // Essentially res.
 
-  // allocate space for ts:
-  ts = vector< vector< double > >(width, vector<double>( height, -1.0)  );
-
-  // print_ts(ts);
-  // cout << "\n" << endl;
-
-  /*1st, map vertices to faces*/
-  getVertices();
-  getFaces();
- 
-  /*2nd, find 't' (or how much to travel out the ray)*/
-  // for(int i = 0; i < shapes[i].mesh.num_face_vertices.size(); i++){
-  //   computeDist( face.getFace(i) );
-  // }
-
-  // print_ts(ts);
+  /*
+    2nd, find 't' (or how much to travel out the ray)
+    For each face in the model, pass it and find 't'
+  */
+  for(int i = 0; i < shapes[0].mesh.num_face_vertices.size(); i++){ // 0 b/c only will ever be one shape
+    computeDist( F[i] ); // pass each face from the model.
+  }
 
 }
 
 // Algorithm for Ray Triangle Intersection:
-// void ModelObject::computeDist(){
+void ModelObject::computeDist( const Ray& ray ){
 
-//   /*For each pixel, throw ray out of focal point
-//     and calculate colour along ray;
-//     Fill in pixel value;
-//   */
+  /*For each pixel, throw ray out of focal point
+    and calculate colour along ray;
+    Fill in pixel value;
+  */
 
-//   double beta;
-//   double gamma;
-//   double t;
+  double beta;
+  double gamma;
+  double t;
   
-//   Vector3d O(0,0,0);
-//   Vector3d D(0,0,0); // origin, direction
+  Vector3d O(0,0,0);
+  Vector3d D(0,0,0); // origin, direction
   
-//   Vector3d A(0,0,0);
-//   Vector3d B(0,0,0);
-//   Vector3d C(0,0,0); // face vertices
+  Vector3d A(0,0,0);
+  Vector3d B(0,0,0);
+  Vector3d C(0,0,0); // face vertices
 
-//   Matrix3d mtm(3,3);
-//   Matrix3d Mx1,Mx2,Mx3;
-//   double detMTM, detMTM1, detMTM2, detMTM3;
+  Matrix3d mtm(3,3);
+  Matrix3d Mx1,Mx2,Mx3;
+  double detMTM, detMTM1, detMTM2, detMTM3;
   
  
 
-//   // cout << faces << endl;
-  
-//   for(int i = 0; i < width; i++){ // for each pixel on the image plane...
-//     for(int c = 0; c < height; c++){
+  for(int i = 0; i < width; i++){ // for each pixel on the image plane...
+    for(int c = 0; c < height; c++){
       
-//       O = Rays[i][c].origin;
-//       // cout << "O = \n" << O << endl;
-//       D = Rays[i][c].direction;
-//       // cout << "D = \n" << D << endl;
+      O = Rays[i][c].origin;
+      // cout << "O = \n" << O << endl;
+      D = Rays[i][c].direction;
+      // cout << "D = \n" << D << endl;
       
      
-//       A = current_face.getA();
-//       // cout << "A = \n" << A << endl;
-//       B = current_face.getB();
-//       // cout << "B = \n" << B << endl;
-//       C = current_face.getC();
-//       // cout << "C = \n" << C << endl;
+      A = current_face.getA();
+      // cout << "A = \n" << A << endl;
+      B = current_face.getB();
+      // cout << "B = \n" << B << endl;
+      C = current_face.getC();
+      // cout << "C = \n" << C << endl;
       
-//       // Find vectors for two edges sharing V1 (which is A in my case):
-//       Vector3d AB = A-B;
-//       Vector3d AC = A-C;
-//       Vector3d al = A-O;
+      // Find vectors for two edges sharing V1 (which is A in my case):
+      Vector3d AB = A-B;
+      Vector3d AC = A-C;
+      Vector3d al = A-O;
       
-//       mtm.col(0) = AB;
-//       mtm.col(1) = AC;
-//       mtm.col(2) = D;
+      mtm.col(0) = AB;
+      mtm.col(1) = AC;
+      mtm.col(2) = D;
       
-//       // cout << mtm << endl;
+      // cout << mtm << endl;
       
-//       detMTM = mtm.determinant();
+      detMTM = mtm.determinant();
       
-//       Mx1 = mtm;
-//       Mx2 = mtm;
-//       Mx3 = mtm;
+      Mx1 = mtm;
+      Mx2 = mtm;
+      Mx3 = mtm;
       
-//       Mx1.col(0) = al;  
-//       detMTM1 = Mx1.determinant();
+      Mx1.col(0) = al;  
+      detMTM1 = Mx1.determinant();
       
-//       Mx2.col(1) = al;
-//       detMTM2 = Mx2.determinant();
+      Mx2.col(1) = al;
+      detMTM2 = Mx2.determinant();
       
-//       Mx3.col(2) = al;
-//       detMTM3 = Mx3.determinant();
+      Mx3.col(2) = al;
+      detMTM3 = Mx3.determinant();
       
-//       beta  = detMTM1/detMTM;
-//       // cout << "Beta: " << beta << endl;      
-//       gamma = detMTM2/detMTM;
-//       // cout << "Gamma: " << gamma << endl;
-//       t     = detMTM3/detMTM;
-//       // cout << " computed t: = " << t << endl;
+      beta  = detMTM1/detMTM;
+      // cout << "Beta: " << beta << endl;      
+      gamma = detMTM2/detMTM;
+      // cout << "Gamma: " << gamma << endl;
+      t     = detMTM3/detMTM;
+      // cout << " computed t: = " << t << endl;
 
-//       // ADDED: Early break cases:
-//       if( beta > 0.0 || gamma < 0.0 ) break;
-//       if( beta+gamma > 1.0) break;
-//       if( t < 0.0 ) break;
+      // ADDED: Early break cases:
+      if( beta > 0.0 || gamma < 0.0 ) break;
+      if( beta+gamma > 1.0) break;
+      if( t < 0.0 ) break;
       
-//       // Error Checking:
-//       if( beta >= 0.0 && gamma >= 0.0 && (beta+gamma <= 1.0) && t >= 0.0){ // ray intersect!
-// 	// cout << "Ray intersected with face!" << endl;
-// 	// cout << " computed t intersected: = " << t << endl;
-// 	// cout << "Beta: " << beta << endl;
-// 	// cout << "Gamma: " << gamma << endl;
+      // Error Checking:
+      if( beta >= 0.0 && gamma >= 0.0 && (beta+gamma <= 1.0) && t >= 0.0){ // ray intersect!
+	// cout << "Ray intersected with face!" << endl;
+	// cout << " computed t intersected: = " << t << endl;
+	// cout << "Beta: " << beta << endl;
+	// cout << "Gamma: " << gamma << endl;
 	
-// 	// checking t val:
-// 	if( t <= ts[i][c] || ts[i][c] == -1.0){
-// 	  ts[i][c] = t;
-// 	}
+	// checking t val:
+	if( t <= ts[i][c] || ts[i][c] == -1.0){
+	  ts[i][c] = t;
+	}
 	
-//       }
+      }
       
-//     }// end inner for loop.
-//   }// end outer for loop.
+    }// end inner for loop.
+  }// end outer for loop.
 
-// }
+}
 
 
 // void ModelObject::print_ts(const vector<vector<double>>& vect){

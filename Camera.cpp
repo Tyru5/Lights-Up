@@ -175,7 +175,8 @@ void Camera::parseScene( const string& scene_file ){
     for( int i =0; i < static_cast<int>(modelObject_list.size()); i++){
       modelObject_list[i].parseObj();
       if(DEBUG) modelObject_list[i].PrintInfo();
-      modelObject_list[i].rayTriangleIntersection( width, height );
+      modelObject_list[i].getFaces();
+      
     }
     
   } // end of if
@@ -286,6 +287,21 @@ RowVector3i Camera::mapColour( const Color &c ){
 
 }
 
+
+void Camera::writeModels(){
+
+  for(int i = 0; i < width; i++ ){
+    for(int c = 0; c < height; c++ ){
+      for(int m = 0; sp < static_cast<int>(modelObject_list.size()); m++){
+	
+	modelObject_list[m].rayTriangleIntersection( Rays[i][height - c -1], ambient_color, lightSource_list );
+	
+      }
+    }
+  }
+
+
+}
 
 void Camera::writeImage( const string& out_file ){
 

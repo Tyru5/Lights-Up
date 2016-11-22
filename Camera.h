@@ -38,7 +38,6 @@ class Camera{
 
   // member functions:
   void parseScene( const string& scene_file );
-
   void buildRM();
   void calculateRays();
   
@@ -46,12 +45,12 @@ class Camera{
   void find_tmin_tmax( vector< vector<double>>& tvals);
   
   // Where the magic happens:
-  void computeDist(const Face& current_face);
   
   Vector3i getColour(const double& tval);
   RowVector3i  mapColour(const Color& bc);
   void printPixs() const;
-  
+
+  void writeModels();
   void writeImage(const string& out_file);
   
   void rayTriangleIntersection(const ModelObject& obj, const Face& face);
