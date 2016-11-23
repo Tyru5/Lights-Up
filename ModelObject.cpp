@@ -407,7 +407,9 @@ tuple<bool, Face> ModelObject::rayTriangleIntersection( const int& width, const 
   tuple<bool,Face> res;
   for(int i = 0; i < static_cast<int>( shapes[0].mesh.num_face_vertices.size() ); i++){ // 0 b/c only will ever be one shape
     res = computeDist( width, height, ray, F[i] ); // pass each face from the model.
+    cout << "in rTI = " << get<0>(res) << " " << get<1>(res) << endl;
   }
+ 
   return res;
 }
 

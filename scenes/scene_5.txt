@@ -3,7 +3,7 @@ look 0 0 0
 up 0 0 1
 d 1
 bounds -1 -1 1 1
-res 256 256
+res 4 4  
 ambient 0.2 0.2 0.2
 light 3 5 0 1 1.0 1.0 1.0
 model 0.0 0.0 0.0 1.0 0.0 0.0 0.0 test02.obj
