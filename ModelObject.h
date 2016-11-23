@@ -50,6 +50,7 @@ class ModelObject{
   void parseObj();
   void PrintInfo()const;
   void getVertices();
+  void getVnertices();
   void getFaces();
   void rayTriangleIntersection(const int& width, const int& height);
   void computeDist();
@@ -75,8 +76,12 @@ class ModelObject{
   double wz;
   double theta;
 
+  // Vertices of whole model:
   MatrixXd vertices;
+  // Vector of all faces:
   vector<Face> F;
+  // Vector of all vn:
+  vector< Vector3d > vn;
 
   Matrix3d face_material;
 

@@ -50,7 +50,6 @@ class Camera{
   RowVector3i  mapColour(const Color& bc);
   void printPixs() const;
 
-  void writeModels();
   void writeImage(const string& out_file);
   
   void rayTriangleIntersection(const ModelObject& obj, const Face& face);

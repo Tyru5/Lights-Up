@@ -288,21 +288,6 @@ RowVector3i Camera::mapColour( const Color &c ){
 }
 
 
-void Camera::writeModels(){
-
-  for(int i = 0; i < width; i++ ){
-    for(int c = 0; c < height; c++ ){
-      for(int m = 0; sp < static_cast<int>(modelObject_list.size()); m++){
-	
-	modelObject_list[m].rayTriangleIntersection( Rays[i][height - c -1], ambient_color, lightSource_list );
-	
-      }
-    }
-  }
-
-
-}
-
 void Camera::writeImage( const string& out_file ){
 
   ofstream out( out_file );

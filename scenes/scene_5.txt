@@ -6,4 +6,4 @@ bounds -1 -1 1 1
 res 256 256
 ambient 0.2 0.2 0.2
 light 3 5 0 1 1.0 1.0 1.0
-model 0.0 0.0 0.0 1.0 0.0 0.0 0.0 box.obj
+model 0.0 0.0 0.0 1.0 0.0 0.0 0.0 test02.obj
