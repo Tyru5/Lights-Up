@@ -4,15 +4,12 @@
 
 
 // directives:
-#include <iostream>
-#include <string>
 #include <vector>
 #include <fstream>
 #include <sstream>
 #include <algorithm>
 #include <iterator>
 #include <math.h>
-#include <tuple> // std::tuple, std::get, std::tie, std::ignore
 #include <Eigen/Dense>
 #include "Sphere.h"
 

@@ -14,9 +14,12 @@
 #include <cstdlib>
 #include <fstream>
 #include <sstream>
+#include <tuple> // std::tuple, std::get, std::tie, std::ignore
 #include <Eigen/Dense>
 #include "Ray.h"
+#include "Color.h"
 #include "Face.h"
+#include "LightSource.h"
 
 /* Using tinyobjloader from syoyo*/
 #include "tiny_obj_loader.h"
@@ -49,12 +52,13 @@ class ModelObject{
   // Member functions:
   void parseObj();
   void PrintInfo()const;
+  tuple<bool,Color> getRayModelRGB( const int& width, const int& height, const Ray& ray, const Color& ambl, const vector<LightSource>& lights );
   void getVertices();
   void getVnertices();
   void getFaces();
-  void rayTriangleIntersection(const int& width, const int& height);
-  void computeDist();
-  void print_ts(const vector<vector<double>>& vect);
+  tuple<bool,Face> rayTriangleIntersection(const int& width, const int& height, const Ray& ray );
+  tuple<bool,Face>computeDist(const int& width, const int& height, const Ray& ray, const Face& current_face);
+
 
   
  protected:
@@ -84,6 +88,13 @@ class ModelObject{
   vector< Vector3d > vn;
 
   Matrix3d face_material;
+
+  // 2d array to hold all t's:
+  vector< vector< double > > ts; 
+
+  
+  double t;
+  Vector3d ptos;
 
 };
 

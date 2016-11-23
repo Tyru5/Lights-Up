@@ -6,14 +6,14 @@
 
 /*
 
-                                       ~QUICK NOTE~
+  ~QUICK NOTE~
 
-In building my raytracer for this assignment, I used a third party library called Tiny obj Loader.
+  In building my raytracer for this assignment, I used a third party library called Tiny obj Loader.
 
-As taken from their official webpage, 
-"Tiny but powerful single file wavefront obj loader written in C++. No dependency except for C++ STL. It can parse 10M over polygons with moderate memory and time."
+  As taken from their official webpage, 
+  "Tiny but powerful single file wavefront obj loader written in C++. No dependency except for C++ STL. It can parse 10M over polygons with moderate memory and time."
 
-More information may be found here: https://syoyo.github.io/tinyobjloader/
+  More information may be found here: https://syoyo.github.io/tinyobjloader/
 
 */
 
@@ -31,7 +31,7 @@ using namespace std;
 
 
 // Macros:
-#define DEBUG false
+#define DEBUG true
 
 
 void ModelObject::pprint(ostream& out) const{
@@ -145,7 +145,7 @@ void ModelObject::PrintInfo() const{
       printf(" floats: [");
       for (size_t j = 0; j < shapes[i].mesh.tags[t].floatValues.size(); ++j) {
         printf("%f", static_cast<const double>(
-                         shapes[i].mesh.tags[t].floatValues[j]));
+					       shapes[i].mesh.tags[t].floatValues[j]));
         if (j < (shapes[i].mesh.tags[t].floatValues.size() - 1)) {
           printf(", ");
         }
@@ -216,9 +216,9 @@ void ModelObject::PrintInfo() const{
     printf("  material.map_Ps = %s\n", materials[i].sheen_texname.c_str());
     printf("  material.norm   = %s\n", materials[i].normal_texname.c_str());
     std::map<std::string, std::string>::const_iterator it(
-        materials[i].unknown_parameter.begin());
+							  materials[i].unknown_parameter.begin());
     std::map<std::string, std::string>::const_iterator itEnd(
-        materials[i].unknown_parameter.end());
+							     materials[i].unknown_parameter.end());
 
     for (; it != itEnd; it++) {
       printf("  material.%s = %s\n", it->first.c_str(), it->second.c_str());
@@ -247,20 +247,20 @@ void ModelObject::getVertices(){
 
 void ModelObject::getVnertices(){
 
-  cout << "how many vns = " << (attrib.normals.size() / 3) << endl;
+  // cout << "how many vns = " << (attrib.normals.size() / 3) << endl;
   vn = vector< Vector3d > (static_cast<int>( (attrib.normals.size() / 3) ) );
   Vector3d vnt(3);
   for (size_t v = 0; v < attrib.normals.size() / 3; v++) {
     /*
       printf("  n[%ld] = (%f, %f, %f)\n", static_cast<long>(v),
-           static_cast<const double>(attrib.normals[3 * v + 0]),
-           static_cast<const double>(attrib.normals[3 * v + 1]),
-           static_cast<const double>(attrib.normals[3 * v + 2]));
+      static_cast<const double>(attrib.normals[3 * v + 0]),
+      static_cast<const double>(attrib.normals[3 * v + 1]),
+      static_cast<const double>(attrib.normals[3 * v + 2]));
     */
     vnt(0) = attrib.normals[3 * v + 0];
     vnt(1) = attrib.normals[3 * v + 1];
     vnt(2) = attrib.normals[3 * v + 2];
-    cout << "vn " << v << " =" << vnt << endl;
+    // cout << "vn " << v << " =\n" << vnt << endl;
     vn[v] = vnt;
   }
 
@@ -277,8 +277,8 @@ void ModelObject::getFaces(){
   F = vector< Face >( shapes[0].mesh.num_face_vertices.size() ); // zero b/c only one shape will ever be in it.
 
   vector<double> index_holder(3);
+  vector<double> vn_index_holder(3);
 
-  double index;
   face_material.resize(3,3);
   size_t index_offset = 0;
 
@@ -286,16 +286,18 @@ void ModelObject::getFaces(){
   for (size_t f = 0; f < shapes[0].mesh.num_face_vertices.size(); f++) { // could be zero because only ever 1 shape
     int material_row_counter = 0;
     size_t fnum = shapes[0].mesh.num_face_vertices[f]; // could be zero because only ever 1 shape
+    // cout << "fnum = " << fnum << endl;
 
     // For each vertex in the face
     for (size_t v = 0; v < fnum; v++) {
       tinyobj::index_t idx = shapes[0].mesh.indices[index_offset + v];
-      index = idx.vertex_index;
-      index_holder[v] = index;
+      // index = idx.vertex_index;
+      index_holder[v] = idx.vertex_index;
+      vn_index_holder[v] = idx.normal_index;
       /*
-      printf("    face[%ld].v[%ld].idx = %d/%d/%d\n", static_cast<long>(f),
-  	     static_cast<long>(v), idx.vertex_index, idx.normal_index,
-  	     idx.texcoord_index);
+	printf("    face[%ld].v[%ld].idx = %d/%d/%d\n", static_cast<long>(f),
+	static_cast<long>(v), idx.vertex_index, idx.normal_index,
+	idx.texcoord_index);
       */
     }
     
@@ -315,10 +317,10 @@ void ModelObject::getFaces(){
     face_material(material_row_counter, 0) =  materials[ shapes[0].mesh.material_ids[f] ].specular[0];
     face_material(material_row_counter, 1) =  materials[ shapes[0].mesh.material_ids[f] ].specular[1];
     face_material(material_row_counter, 2) =  materials[ shapes[0].mesh.material_ids[f] ].specular[2];
-    if(DEBUG) cout << "k matrix is = " << face_material << endl;
-
-    F[f] = Face( index_holder[0], index_holder[1], index_holder[2], face_material, vn[shapes[0].mesh.num_face_vertices[f] ] );
-    F[f].map( vertices, face_material, vn[ shapes[0].mesh.num_face_vertices[f] ] ); // index for that face
+    // if(DEBUG) cout << "k matrix is = " << face_material << endl;
+    
+    F[f] = Face( index_holder[0], index_holder[1], index_holder[2], face_material, vn[ vn_index_holder[0] ] ); // should matter what normal index...
+    F[f].map( vertices, face_material, vn[ vn_index_holder[0] ] ); // index for that face
     if(DEBUG) cout << F[f];
     
     
@@ -328,122 +330,186 @@ void ModelObject::getFaces(){
 
 }
 
-// void ModelObject::rayTriangleIntersection( const int& width, const int& height ){ // Essentially res.
+tuple<bool, Color> ModelObject::getRayModelRGB( const int& width, const int& height, const Ray& ray, const Color& ambl, const vector<LightSource>& lights ){
 
-//   /*
-//     2nd, find 't' (or how much to travel out the ray)
-//     For each face in the model, pass it and find 't'
-//   */
-//   for(int i = 0; i < shapes[0].mesh.num_face_vertices.size(); i++){ // 0 b/c only will ever be one shape
-//     computeDist( F[i] ); // pass each face from the model.
-//   }
+  /*
+    Given a certain ray-triangle (face) intersection, compute the RGB off the surface:
+  */
 
-// }
+  tuple<bool,Face> res = rayTriangleIntersection( width, height, ray );
+  double alpha = 16.0;
+  Color color; // to start off, a blank color;
+  if( get<0>(res) ){
+
+    Vector3d snrm = get<1>(res).surface_normal; snrm = snrm/snrm.norm(); // JUST UPDATED IT!
+    // if(DEBUG) cout << "the snrm on sphere is = " << snrm.transpose() << " with ptos = " << ptos.transpose() << endl;
+    // Initial condition of the ambient lighting of the scene:
+    Vector3d fa = get<1>(res).material.row(0); // zero row will be ambient
+    Color face_ambient = Color( fa(0), fa(1), fa(2) );
+    color = ambl * face_ambient;
+    // cout << color;
+
+    // cout << lights.size() << endl;
+    for( int z = 0; z < static_cast<int>( lights.size() ); z++){
+    
+      Vector3d lp( lights[z].position(0), lights[z].position(1), lights[z].position(2) );
+      // if(DEBUG) cout << "light position = " << lp.transpose() << endl;
+    
+      Vector3d toL = lp - ptos; toL = toL/toL.norm(); // unit length
+      // cout << "toL = " << toL.transpose() << " with associated ptos = " << ptos.transpose() << endl;
+    
+      if( snrm.dot( toL ) > 0.0 ){ // meaning there is actually an angle
+	
+	Vector3d fd = get<1>(res).material.row(1); // zero row will be ambient
+	Color face_diffuse = Color( fd(0), fd(1), fd(2) );
+	color += face_diffuse * lights[z].energy * snrm.dot( toL );
+	// cout << "color2 = " << color;
+	Vector3d toC  = ray.origin - ptos; toC = toC / toC.norm();
+	// cout << "toC = " << toC.transpose() << " with associated ptos = " << ptos.transpose() << endl;
+	
+	Vector3d spR  = (2 * snrm.dot( toL ) * snrm) - toL;
+	// cout << "spR = " << spR.transpose() << " with ptos of = " << ptos.transpose() << endl;
+
+	// cout << toC.dot( spR ) << " ptos associated = " << ptos.transpose() << endl;; //<-- why not 16?
+
+	Vector3d fs = get<1>(res).material.row(2); // zero row will be ambient
+	Color face_specular = Color( fs(0), fs(1), fs(2) );	
+	color += face_specular * lights[z].energy *  pow( toC.dot( spR ), alpha );
+	// cout << "color3 = " << color << "with ptos of = " << ptos.transpose() << endl;
+
+      }
+
+    }
+    
+    // cout << "about to return the color." << endl;
+    return make_tuple(true, color);
+    
+  }else{
+
+    return make_tuple(false, Color() );
+    
+  }
+
+}
+
+
+
+tuple<bool, Face> ModelObject::rayTriangleIntersection( const int& width, const int& height, const Ray& ray ){
+
+  /*
+    2nd, find 't' (or how much to travel out the ray)
+    For each face in the model, pass it and find 't'
+  */
+
+  // allocate space for ts:
+  ts = vector< vector< double > >(width, vector<double>( height, -1.0)  );
+
+  tuple<bool,Face> res;
+  for(int i = 0; i < static_cast<int>( shapes[0].mesh.num_face_vertices.size() ); i++){ // 0 b/c only will ever be one shape
+    res = computeDist( width, height, ray, F[i] ); // pass each face from the model.
+  }
+  return res;
+}
 
 // Algorithm for Ray Triangle Intersection:
-// void ModelObject::computeDist( const Ray& ray ){
+tuple<bool, Face> ModelObject::computeDist( const int& width, const int& height, const Ray& ray, const Face& current_face ){
 
-//   /*For each pixel, throw ray out of focal point
-//     and calculate colour along ray;
-//     Fill in pixel value;
-//   */
+  /*For each pixel, throw ray out of focal point
+    and calculate colour along ray;
+    Fill in pixel value;
+  */
 
-//   double beta;
-//   double gamma;
-//   double t;
+  double beta;
+  double gamma;
   
-//   Vector3d O(0,0,0);
-//   Vector3d D(0,0,0); // origin, direction
+  /* Defaults of ray*/
+  Vector3d origin(0,0,0);
+  Vector3d direction(0,0,0); // origin, direction
   
-//   Vector3d A(0,0,0);
-//   Vector3d B(0,0,0);
-//   Vector3d C(0,0,0); // face vertices
+  /* Defaults for face vertices*/
+  Vector3d A(0,0,0);
+  Vector3d B(0,0,0);
+  Vector3d C(0,0,0);
 
-//   Matrix3d mtm(3,3);
-//   Matrix3d Mx1,Mx2,Mx3;
-//   double detMTM, detMTM1, detMTM2, detMTM3;
+  Matrix3d mtm(3,3);
+  Matrix3d Mx1,Mx2,Mx3;
+  double detMTM, detMTM1, detMTM2, detMTM3;
   
  
 
-//   for(int i = 0; i < width; i++){ // for each pixel on the image plane...
-//     for(int c = 0; c < height; c++){
+  for(int i = 0; i < width; i++){ // for each pixel on the image plane...
+    for(int c = 0; c < height; c++){
       
-//       O = Rays[i][c].origin;
-//       // cout << "O = \n" << O << endl;
-//       D = Rays[i][c].direction;
-//       // cout << "D = \n" << D << endl;
+      origin = ray.origin;
+      // cout << "O = \n" << O << endl;
+      direction = ray.direction;
+      // cout << "D = \n" << D << endl;
       
      
-//       A = current_face.getA();
-//       // cout << "A = \n" << A << endl;
-//       B = current_face.getB();
-//       // cout << "B = \n" << B << endl;
-//       C = current_face.getC();
-//       // cout << "C = \n" << C << endl;
+      A = current_face.getA();
+      // cout << "A = \n" << A << endl;
+      B = current_face.getB();
+      // cout << "B = \n" << B << endl;
+      C = current_face.getC();
+      // cout << "C = \n" << C << endl;
       
-//       // Find vectors for two edges sharing V1 (which is A in my case):
-//       Vector3d AB = A-B;
-//       Vector3d AC = A-C;
-//       Vector3d al = A-O;
+      // Find vectors for two edges sharing V1 (which is A in my case):
+      Vector3d AB = A-B;
+      Vector3d AC = A-C;
+      Vector3d al = A-origin;
       
-//       mtm.col(0) = AB;
-//       mtm.col(1) = AC;
-//       mtm.col(2) = D;
+      mtm.col(0) = AB;
+      mtm.col(1) = AC;
+      mtm.col(2) = direction;
       
-//       // cout << mtm << endl;
+      // cout << mtm << endl;
       
-//       detMTM = mtm.determinant();
+      detMTM = mtm.determinant();
       
-//       Mx1 = mtm;
-//       Mx2 = mtm;
-//       Mx3 = mtm;
+      Mx1 = mtm;
+      Mx2 = mtm;
+      Mx3 = mtm;
       
-//       Mx1.col(0) = al;  
-//       detMTM1 = Mx1.determinant();
+      Mx1.col(0) = al;  
+      detMTM1 = Mx1.determinant();
       
-//       Mx2.col(1) = al;
-//       detMTM2 = Mx2.determinant();
+      Mx2.col(1) = al;
+      detMTM2 = Mx2.determinant();
       
-//       Mx3.col(2) = al;
-//       detMTM3 = Mx3.determinant();
+      Mx3.col(2) = al;
+      detMTM3 = Mx3.determinant();
       
-//       beta  = detMTM1/detMTM;
-//       // cout << "Beta: " << beta << endl;      
-//       gamma = detMTM2/detMTM;
-//       // cout << "Gamma: " << gamma << endl;
-//       t     = detMTM3/detMTM;
-//       // cout << " computed t: = " << t << endl;
+      beta  = detMTM1/detMTM;
+      // cout << "Beta: " << beta << endl;      
+      gamma = detMTM2/detMTM;
+      // cout << "Gamma: " << gamma << endl;
+      t     = detMTM3/detMTM;
+      // cout << " computed t: = " << t << endl;
 
-//       // ADDED: Early break cases:
-//       if( beta > 0.0 || gamma < 0.0 ) break;
-//       if( beta+gamma > 1.0) break;
-//       if( t < 0.0 ) break;
+      // ADDED: Early break cases:
+      if( beta > 0.0 || gamma < 0.0 ) return make_tuple(false, Face() ); // default face, doesn't matter anywy
+      if( beta+gamma > 1.0) return make_tuple(false, Face() );
+      if( t < 0.0 ) return make_tuple(false, Face() );
       
-//       // Error Checking:
-//       if( beta >= 0.0 && gamma >= 0.0 && (beta+gamma <= 1.0) && t >= 0.0){ // ray intersect!
-// 	// cout << "Ray intersected with face!" << endl;
-// 	// cout << " computed t intersected: = " << t << endl;
-// 	// cout << "Beta: " << beta << endl;
-// 	// cout << "Gamma: " << gamma << endl;
+      // Error Checking:
+      if( beta >= 0.0 && gamma >= 0.0 && (beta+gamma <= 1.0) && t >= 0.0){ // ray intersect!
+	// cout << "Ray intersected with face!" << endl;
+	// cout << " computed t intersected: = " << t << endl;
+	// cout << "Beta: " << beta << endl;
+	// cout << "Gamma: " << gamma << endl;
 	
-// 	// checking t val:
-// 	if( t <= ts[i][c] || ts[i][c] == -1.0){
-// 	  ts[i][c] = t;
-// 	}
+	// checking t val:
+	if( t <= ts[i][c] || ts[i][c] == -1.0){
+	  ts[i][c] = t;
+	  ptos = origin + t * direction;
+	  return make_tuple(true, current_face); // return current face of intersection aswellas true
+	}
 	
-//       }
+      }
       
-//     }// end inner for loop.
-//   }// end outer for loop.
+    }// end inner for loop.
+  }// end outer for loop.
 
-// }
+  return make_tuple(false, Face() );
+}
 
-
-// void ModelObject::print_ts(const vector<vector<double>>& vect){
-//   for(int i =  0; i < width; i++){
-//     for(int c = 0; c < height; c++){
-//       cout << vect[i][c] << " ";
-//     }
-//     cout << endl;
-//   }
-// }

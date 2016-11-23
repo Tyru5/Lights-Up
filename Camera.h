@@ -51,6 +51,7 @@ class Camera{
   void printPixs() const;
 
   void writeImage(const string& out_file);
+  void writeImage2( const string& out_file );
   
   void rayTriangleIntersection(const ModelObject& obj, const Face& face);
 

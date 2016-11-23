@@ -171,7 +171,7 @@ void Camera::parseScene( const string& scene_file ){
   
   if( modelObject_list.size() != 0 ){
 
-    // Now for each model, parse it and assign faces with cooresponding material props:
+    // Now for each model, parse it and assign faces with cooresponding material props and vertex_norms;
     for( int i =0; i < static_cast<int>(modelObject_list.size()); i++){
       modelObject_list[i].parseObj();
       if(DEBUG) modelObject_list[i].PrintInfo();
@@ -307,6 +307,50 @@ void Camera::writeImage( const string& out_file ){
       for(int sp = 0; sp < static_cast<int>(spheres.size()); sp++){
 
 	tuple<bool, Color> res = spheres[sp].getRaySphereRGB( Rays[i][height - c -1], ambient_color, lightSource_list );
+	if( get<0>(res) ){
+	  // rgb = mapColour( sphere_colors[i * height + c] );
+	  //rgb = mapColour( get<1>(res) );
+	  // out << rgb(0) << " " << rgb(1) << " " << rgb(2) << " ";
+	  pixs[i][c] = mapColour( get<1>(res) );
+	  // cout << "pix[i,c] = " << pixs[i][c] << endl;
+	  
+	}
+	
+      }
+    }
+  }
+
+  // now writing out:
+  for(int i = 0; i < width; i++, out << endl){
+    for(int j = 0; j < height; j++){
+      out << pixs[j][i] << " "; // reversed to print out correctly
+    }
+  }
+  
+  out.close();
+
+}
+
+
+void Camera::writeImage2( const string& out_file ){
+
+  ofstream out( out_file );
+  if( !out ) cout << "Sorry! Couldn't write out the file: " << out_file << endl;
+
+  pixs = vector< vector<RowVector3i> >(width, vector<RowVector3i>(height, RowVector3i(0,0,0) ) ); // pretty awesome
+  // printPixs();
+  
+  // start writing out to the file:
+  out << "P3 " << endl;
+  out << width << " " << height << " 255" << endl;
+
+  // Map pixel, get only one *very important :: talked with jake*
+  Vector3i rgb(3);
+  for(int i = 0; i < width; i++ ){
+    for(int c = 0; c < height; c++ ){
+      for(int m = 0; m < static_cast<int>(modelObject_list.size()); m++){
+
+	tuple<bool, Color> res = modelObject_list[m].getRayModelRGB( width, height, Rays[i][height - c -1], ambient_color, lightSource_list );
 	if( get<0>(res) ){
 	  // rgb = mapColour( sphere_colors[i * height + c] );
 	  //rgb = mapColour( get<1>(res) );

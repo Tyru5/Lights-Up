@@ -72,6 +72,7 @@ int main(int argc, char *argv[]){
   // camera.raySphereIntersection();
 
   // camera.writeImage( argv[2] );
+  camera.writeImage2( argv[2] ); // testint the model stuff.
   
   return 0;
 }
