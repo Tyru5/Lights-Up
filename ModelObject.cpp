@@ -31,7 +31,7 @@ using namespace std;
 
 
 // Macros:
-#define DEBUG true
+#define DEBUG false
 
 
 void ModelObject::pprint(ostream& out) const{
@@ -330,71 +330,71 @@ void ModelObject::getFaces(){
 
 }
 
-tuple<bool, Color> ModelObject::getRayModelRGB( const int& width, const int& height, const Ray& ray, const Color& ambl, const vector<LightSource>& lights ){
+tuple<bool, Color> ModelObject::getRayModelRGB( Ray& ray, const Color& ambl, const vector<LightSource>& lights ){
 
   /*
     Given a certain ray-triangle (face) intersection, compute the RGB off the surface:
   */
 
-  tuple<bool,Face> res = rayTriangleIntersection( width, height, ray );
-  double alpha = 16.0;
-  Color color; // to start off, a blank color;
-  if( get<0>(res) ){
+  tuple<bool,Face> res = rayTriangleIntersection( ray );
+  // double alpha = 16.0;
+  // Color color; // to start off, a blank color;
+  // if( get<0>(res) ){
 
-    Vector3d snrm = get<1>(res).surface_normal; snrm = snrm/snrm.norm(); // JUST UPDATED IT!
-    // if(DEBUG) cout << "the snrm on sphere is = " << snrm.transpose() << " with ptos = " << ptos.transpose() << endl;
-    // Initial condition of the ambient lighting of the scene:
-    Vector3d fa = get<1>(res).material.row(0); // zero row will be ambient
-    Color face_ambient = Color( fa(0), fa(1), fa(2) );
-    color = ambl * face_ambient;
-    // cout << color;
+  //   Vector3d snrm = get<1>(res).surface_normal; snrm = snrm/snrm.norm(); // JUST UPDATED IT!
+  //   // if(DEBUG) cout << "the snrm on sphere is = " << snrm.transpose() << " with ptos = " << ptos.transpose() << endl;
+  //   // Initial condition of the ambient lighting of the scene:
+  //   Vector3d fa = get<1>(res).material.row(0); // zero row will be ambient
+  //   Color face_ambient = Color( fa(0), fa(1), fa(2) );
+  //   color = ambl * face_ambient;
+  //   // cout << color;
 
-    // cout << lights.size() << endl;
-    for( int z = 0; z < static_cast<int>( lights.size() ); z++){
+  //   // cout << lights.size() << endl;
+  //   for( int z = 0; z < static_cast<int>( lights.size() ); z++){
     
-      Vector3d lp( lights[z].position(0), lights[z].position(1), lights[z].position(2) );
-      // if(DEBUG) cout << "light position = " << lp.transpose() << endl;
+  //     Vector3d lp( lights[z].position(0), lights[z].position(1), lights[z].position(2) );
+  //     // if(DEBUG) cout << "light position = " << lp.transpose() << endl;
     
-      Vector3d toL = lp - ptos; toL = toL/toL.norm(); // unit length
-      // cout << "toL = " << toL.transpose() << " with associated ptos = " << ptos.transpose() << endl;
+  //     Vector3d toL = lp - ptos; toL = toL/toL.norm(); // unit length
+  //     // cout << "toL = " << toL.transpose() << " with associated ptos = " << ptos.transpose() << endl;
     
-      if( snrm.dot( toL ) > 0.0 ){ // meaning there is actually an angle
+  //     if( snrm.dot( toL ) > 0.0 ){ // meaning there is actually an angle
 	
-	Vector3d fd = get<1>(res).material.row(1); // zero row will be ambient
-	Color face_diffuse = Color( fd(0), fd(1), fd(2) );
-	color += face_diffuse * lights[z].energy * snrm.dot( toL );
-	// cout << "color2 = " << color;
-	Vector3d toC  = ray.origin - ptos; toC = toC / toC.norm();
-	// cout << "toC = " << toC.transpose() << " with associated ptos = " << ptos.transpose() << endl;
+  // 	Vector3d fd = get<1>(res).material.row(1); // zero row will be ambient
+  // 	Color face_diffuse = Color( fd(0), fd(1), fd(2) );
+  // 	color += face_diffuse * lights[z].energy * snrm.dot( toL );
+  // 	// cout << "color2 = " << color;
+  // 	Vector3d toC  = ray.origin - ptos; toC = toC / toC.norm();
+  // 	// cout << "toC = " << toC.transpose() << " with associated ptos = " << ptos.transpose() << endl;
 	
-	Vector3d spR  = (2 * snrm.dot( toL ) * snrm) - toL;
-	// cout << "spR = " << spR.transpose() << " with ptos of = " << ptos.transpose() << endl;
+  // 	Vector3d spR  = (2 * snrm.dot( toL ) * snrm) - toL;
+  // 	// cout << "spR = " << spR.transpose() << " with ptos of = " << ptos.transpose() << endl;
 
-	// cout << toC.dot( spR ) << " ptos associated = " << ptos.transpose() << endl;; //<-- why not 16?
+  // 	// cout << toC.dot( spR ) << " ptos associated = " << ptos.transpose() << endl;; //<-- why not 16?
 
-	Vector3d fs = get<1>(res).material.row(2); // zero row will be ambient
-	Color face_specular = Color( fs(0), fs(1), fs(2) );	
-	color += face_specular * lights[z].energy *  pow( toC.dot( spR ), alpha );
-	// cout << "color3 = " << color << "with ptos of = " << ptos.transpose() << endl;
+  // 	Vector3d fs = get<1>(res).material.row(2); // zero row will be ambient
+  // 	Color face_specular = Color( fs(0), fs(1), fs(2) );	
+  // 	color += face_specular * lights[z].energy *  pow( toC.dot( spR ), alpha );
+  // 	// cout << "color3 = " << color << "with ptos of = " << ptos.transpose() << endl;
 
-      }
+  //     }
 
-    }
+  //   }
     
-    // cout << "about to return the color." << endl;
-    return make_tuple(true, color);
+  //   // cout << "about to return the color." << endl;
+  //   return make_tuple(true, color);
     
-  }else{
+  // }else{
 
-    return make_tuple(false, Color() );
+  //   return make_tuple(false, Color() );
     
-  }
+  // }
 
 }
 
 
 
-tuple<bool, Face> ModelObject::rayTriangleIntersection( const int& width, const int& height, const Ray& ray ){
+tuple<bool, Face> ModelObject::rayTriangleIntersection( Ray& ray ){
 
   /*
     2nd, find 't' (or how much to travel out the ray)
@@ -402,19 +402,19 @@ tuple<bool, Face> ModelObject::rayTriangleIntersection( const int& width, const 
   */
 
   // allocate space for ts:
-  ts = vector< vector< double > >(width, vector<double>( height, -1.0)  );
+  // ts = vector< vector< double > >(width, vector<double>( height, -1.0)  );
 
   tuple<bool,Face> res;
   for(int i = 0; i < static_cast<int>( shapes[0].mesh.num_face_vertices.size() ); i++){ // 0 b/c only will ever be one shape
-    res = computeDist( width, height, ray, F[i] ); // pass each face from the model.
-    cout << "in rTI = " << get<0>(res) << " " << get<1>(res) << endl;
+    res = computeDist( ray, F[i] ); // pass each face from the model.
+    // cout << "in rTI = " << get<0>(res) << " face: \n" << get<1>(res).mvil << endl;
   }
  
   return res;
 }
 
 // Algorithm for Ray Triangle Intersection:
-tuple<bool, Face> ModelObject::computeDist( const int& width, const int& height, const Ray& ray, const Face& current_face ){
+tuple<bool, Face> ModelObject::computeDist( Ray& ray, const Face& current_face ){
 
   /*For each pixel, throw ray out of focal point
     and calculate colour along ray;
@@ -439,79 +439,75 @@ tuple<bool, Face> ModelObject::computeDist( const int& width, const int& height,
   
  
 
-  for(int i = 0; i < width; i++){ // for each pixel on the image plane...
-    for(int c = 0; c < height; c++){
-      
-      origin = ray.origin;
-      // cout << "O = \n" << O << endl;
-      direction = ray.direction;
-      // cout << "D = \n" << D << endl;
-      
-     
-      A = current_face.getA();
-      // cout << "A = \n" << A << endl;
-      B = current_face.getB();
-      // cout << "B = \n" << B << endl;
-      C = current_face.getC();
-      // cout << "C = \n" << C << endl;
-      
-      // Find vectors for two edges sharing V1 (which is A in my case):
-      Vector3d AB = A-B;
-      Vector3d AC = A-C;
-      Vector3d al = A-origin;
-      
-      mtm.col(0) = AB;
-      mtm.col(1) = AC;
-      mtm.col(2) = direction;
-      
-      // cout << mtm << endl;
-      
-      detMTM = mtm.determinant();
-      
-      Mx1 = mtm;
-      Mx2 = mtm;
-      Mx3 = mtm;
-      
-      Mx1.col(0) = al;  
-      detMTM1 = Mx1.determinant();
-      
-      Mx2.col(1) = al;
-      detMTM2 = Mx2.determinant();
-      
-      Mx3.col(2) = al;
-      detMTM3 = Mx3.determinant();
-      
-      beta  = detMTM1/detMTM;
-      // cout << "Beta: " << beta << endl;      
-      gamma = detMTM2/detMTM;
-      // cout << "Gamma: " << gamma << endl;
-      t     = detMTM3/detMTM;
-      // cout << " computed t: = " << t << endl;
-
-      // ADDED: Early break cases:
-      if( beta > 0.0 || gamma < 0.0 ) return make_tuple(false, Face() ); // default face, doesn't matter anywy
-      if( beta+gamma > 1.0) return make_tuple(false, Face() );
-      if( t < 0.0 ) return make_tuple(false, Face() );
-      
-      // Error Checking:
-      if( beta >= 0.0 && gamma >= 0.0 && (beta+gamma <= 1.0) && t >= 0.0){ // ray intersect!
-	// cout << "Ray intersected with face!" << endl;
-	// cout << " computed t intersected: = " << t << endl;
-	// cout << "Beta: " << beta << endl;
-	// cout << "Gamma: " << gamma << endl;
-	
-	// checking t val:
-	if( t <= ts[i][c] || ts[i][c] == -1.0){
-	  ts[i][c] = t;
-	  ptos = origin + t * direction;
-	  return make_tuple(true, current_face); // return current face of intersection aswellas true
-	}
-	
-      }
-      
-    }// end inner for loop.
-  }// end outer for loop.
-
+  origin = ray.origin;
+  // cout << "O = \n" << O << endl;
+  direction = ray.direction;
+  // cout << "D = \n" << D << endl;
+  
+  
+  A = current_face.getA();
+  // cout << "A = \n" << A << endl;
+  B = current_face.getB();
+  // cout << "B = \n" << B << endl;
+  C = current_face.getC();
+  // cout << "C = \n" << C << endl;
+  
+  // Find vectors for two edges sharing V1 (which is A in my case):
+  Vector3d AB = A-B;
+  Vector3d AC = A-C;
+  Vector3d al = A-origin;
+  
+  mtm.col(0) = AB;
+  mtm.col(1) = AC;
+  mtm.col(2) = direction;
+  
+  // cout << mtm << endl;
+  
+  detMTM = mtm.determinant();
+  
+  Mx1 = mtm;
+  Mx2 = mtm;
+  Mx3 = mtm;
+  
+  Mx1.col(0) = al;  
+  detMTM1 = Mx1.determinant();
+  
+  Mx2.col(1) = al;
+  detMTM2 = Mx2.determinant();
+  
+  Mx3.col(2) = al;
+  detMTM3 = Mx3.determinant();
+  
+  beta  = detMTM1/detMTM;
+  // cout << "Beta: " << beta << endl;      
+  gamma = detMTM2/detMTM;
+  // cout << "Gamma: " << gamma << endl;
+  tval  = detMTM3/detMTM;
+  // cout << " computed t: = " << tval << endl;
+  
+  // ADDED: Early break cases:
+  // if( beta > 0.0 || gamma < 0.0 ) return make_tuple(false, Face() ); // default face, doesn't matter anywy
+  // if( beta+gamma > 1.0) return make_tuple(false, Face() );
+  // if( t < 0.0 ) return make_tuple(false, Face() );
+  
+  // Error Checking:
+  if( beta >= 0.0 && gamma >= 0.0 && (beta+gamma <= 1.0) && tval >= 0.0){ // ray intersect!
+    // cout << "Ray intersected with face!" << endl;
+    // cout << " computed t intersected: = " << t << endl;
+    // cout << "Beta: " << beta << endl;
+    // cout << "Gamma: " << gamma << endl;
+    
+    // checking t val:
+    // if( tval <= ts[i][c] || ts[i][c] == -1.0){
+    if( tval <= ray.best_t && tval > 0.00001 ){ // UPDATED
+      ray.best_t = tval;
+      ptos = origin + tval * direction;
+      // cout << "In compute dist :: current face = \n" << current_face;
+      return make_tuple(true, current_face); // return current face of intersection aswellas true
+    }
+    
+  }
+  
   return make_tuple(false, Face() );
 }
 

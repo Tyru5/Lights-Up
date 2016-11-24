@@ -5,8 +5,6 @@
 
 // directives:
 #include "Ray.h"
-#include <Eigen/Dense>
-
 
 // namespace:
 using namespace std;

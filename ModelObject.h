@@ -52,12 +52,12 @@ class ModelObject{
   // Member functions:
   void parseObj();
   void PrintInfo()const;
-  tuple<bool,Color> getRayModelRGB( const int& width, const int& height, const Ray& ray, const Color& ambl, const vector<LightSource>& lights );
+  tuple<bool,Color> getRayModelRGB( Ray& ray, const Color& ambl, const vector<LightSource>& lights );
   void getVertices();
   void getVnertices();
   void getFaces();
-  tuple<bool,Face> rayTriangleIntersection(const int& width, const int& height, const Ray& ray );
-  tuple<bool,Face>computeDist(const int& width, const int& height, const Ray& ray, const Face& current_face);
+  tuple<bool,Face> rayTriangleIntersection( Ray& ray );
+  tuple<bool,Face>computeDist( Ray& ray, const Face& current_face);
 
 
   
@@ -93,7 +93,7 @@ class ModelObject{
   vector< vector< double > > ts; 
 
   
-  double t;
+  double tval;
   Vector3d ptos;
 
 };

@@ -6,6 +6,7 @@
 
 // directives:
 #include <iostream>
+#include <limits>
 #include <vector>
 #include <Eigen/Dense>
 
@@ -38,7 +39,7 @@ class Ray{
 
   Vector3d origin;
   Vector3d direction;
-
+  double best_t = std::numeric_limits<double>::max(); // max double
 
 };
 

@@ -350,7 +350,7 @@ void Camera::writeImage2( const string& out_file ){
     for(int c = 0; c < height; c++ ){
       for(int m = 0; m < static_cast<int>(modelObject_list.size()); m++){
 
-	tuple<bool, Color> res = modelObject_list[m].getRayModelRGB( width, height, Rays[i][height - c -1], ambient_color, lightSource_list );
+	tuple<bool, Color> res = modelObject_list[m].getRayModelRGB( Rays[i][height - c -1], ambient_color, lightSource_list );
 	if( get<0>(res) ){
 	  // rgb = mapColour( sphere_colors[i * height + c] );
 	  //rgb = mapColour( get<1>(res) );
