@@ -64,15 +64,17 @@ int main(int argc, char *argv[]){
 
   // Instaniating class object(s):
   Camera camera;
-  camera.parseScene( argv[1] );
+  camera.parseScene( argv[1] ); // this function does a whole lot, look at the source code for more details.
   
   camera.buildRM();
   camera.calculateRays();
   
   // camera.raySphereIntersection();
+  camera.getModelFaces();
+  // camera.getModelFacesRGB();
 
-  // camera.writeImage( argv[2] );
-  camera.writeImage2( argv[2] ); // testint the model stuff.
+  camera.writeImage2( argv[2] );
+
   
   return 0;
 }

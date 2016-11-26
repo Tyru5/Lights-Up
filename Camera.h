@@ -38,25 +38,27 @@ class Camera{
 
   // member functions:
   void parseScene( const string& scene_file );
+
+  void getModelFaces();
+
   void buildRM();
   void calculateRays();
   
   void print_ts(const vector< vector<double>>& vect);
   void find_tmin_tmax( vector< vector<double>>& tvals);
   
-  // Where the magic happens:
-  
+  // Where the magic happens:  
   Vector3i getColour(const double& tval);
   RowVector3i  mapColour(const Color& bc);
-  void printPixs() const;
-
   void writeImage(const string& out_file);
   void writeImage2( const string& out_file );
+  void printPixs() const;
   
   void rayTriangleIntersection(const ModelObject& obj, const Face& face);
 
   void raySphereIntersection();
-  
+
+  void getModelFacesRGB();
 
   // Methods for adding objects:~~~~~~~~~~~~~~~~~~~~~
   void addLightSources( const LightSource& light ){
@@ -114,6 +116,8 @@ class Camera{
 
   // TESTING:
   vector< tuple<bool, Color> > sphere_colors;
+  vector< tuple<bool, Color> > model_colors;
+
   vector < vector<RowVector3i> > pixs;
 
   

@@ -50,9 +50,11 @@ class Face{
   double A;
   double B;
   double C;
+
   Matrix3d material;
   Vector3d surface_normal;
-
+  Vector3d ptos = Vector3d(0,0,0); // (0,0,0) by default
+  
   Matrix3d mvil;
 
 };

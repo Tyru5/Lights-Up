@@ -176,7 +176,6 @@ void Camera::parseScene( const string& scene_file ){
       modelObject_list[i].parseObj();
       if(DEBUG) modelObject_list[i].PrintInfo();
       modelObject_list[i].getFaces();
-      
     }
     
   } // end of if
@@ -267,6 +266,59 @@ void Camera::calculateRays(){
   
 // }
 
+void Camera::getModelFaces() {
+
+  /*
+    This member function gets the point of intersection for each face before getting the color for each face.
+   */
+
+  for( int i = 0; i < width; i++){
+    for( int c = 0; c < height; c++){ // for each ray
+
+      for( int m = 0; m < static_cast<int>(modelObject_list.size()); m++){ // for all sphere in scene
+	modelObject_list[m].rayTriangleIntersection( Rays[i][height - c -1] );
+      }
+
+    } 
+  } // end of rays.
+
+  // cout << "~~~~Printing out the faces from the Camera class~~~~" << endl;
+  // for( int m = 0; m < static_cast<int>(modelObject_list.size()); m++){ // for all sphere in scene
+  //   modelObject_list[m].printFaces();
+  // }
+  
+}
+
+/*
+void Camera::getModelFacesRGB() {
+
+  for( int i = 0; i < width; i++){
+    for( int c = 0; c < height; c++){ // for each ray
+      
+      for( int m = 0; m < static_cast<int>(modelObject_list.size()); m++){ // for all sphere in scene
+	int number_of_faces = modelObject_list[m].numberOfFaces();
+	// cout << "number of faces in loop= " << number_of_faces << endl;
+	for(int f = 0; f < number_of_faces; f++){
+
+	  tuple<bool, Color> bool_color = modelObject_list[m].getRayModelRGB( Rays[i][height - c -1], modelObject_list[m].getFace(f), ambient_color, lightSource_list );
+	  // cout << "Color from getModelFacesRGB = " << color;
+	  model_colors.push_back( bool_color );
+	} // end of faces
+	
+      } // end of models
+      
+    } 
+  } // end of rays.
+
+  
+  cout << "Printing the colors in the camera class" << endl;
+  for ( const auto& i : model_colors ) {
+    cout << get<0>(i) << get<1>(i);
+  }
+
+}
+*/
+
 RowVector3i Camera::mapColour( const Color &c ){
 
   // tuple(map(lambda(x) : ZZ(max(0,min(255,round(255.0 * x)))), res[1]));
@@ -346,23 +398,30 @@ void Camera::writeImage2( const string& out_file ){
 
   // Map pixel, get only one *very important :: talked with jake*
   Vector3i rgb(3);
-  for(int i = 0; i < width; i++ ){
-    for(int c = 0; c < height; c++ ){
-      for(int m = 0; m < static_cast<int>(modelObject_list.size()); m++){
-
-	tuple<bool, Color> res = modelObject_list[m].getRayModelRGB( Rays[i][height - c -1], ambient_color, lightSource_list );
-	if( get<0>(res) ){
-	  // rgb = mapColour( sphere_colors[i * height + c] );
-	  //rgb = mapColour( get<1>(res) );
-	  // out << rgb(0) << " " << rgb(1) << " " << rgb(2) << " ";
-	  pixs[i][c] = mapColour( get<1>(res) );
-	  // cout << "pix[i,c] = " << pixs[i][c] << endl;
+  for( int i = 0; i < width; i++){
+    for( int c = 0; c < height; c++){ // for each ray
+      
+      for( int m = 0; m < static_cast<int>(modelObject_list.size()); m++){ // for all sphere in scene
+	int number_of_faces = modelObject_list[m].numberOfFaces();
+	// cout << "number of faces in loop= " << number_of_faces << endl;
+	for(int f = 0; f < number_of_faces; f++){
 	  
-	}
+	  tuple<bool, Color> res  = modelObject_list[m].getRayModelRGB( Rays[i][height - c -1], modelObject_list[m].getFace(f), ambient_color, lightSource_list );
+	  // cout << "Color from getModelFacesRGB = " << color;
+
+	  if( get<0>(res) ){
+	    pixs[i][c] = mapColour( get<1>(res) );
+	    // cout << "pix[i,c] = " << pixs[i][c] << endl;
+	 
+	  }
+   
+	} // end of faces
 	
-      }
-    }
-  }
+      } // end of models
+      
+    } 
+  } // end of rays.
+
 
   // now writing out:
   for(int i = 0; i < width; i++, out << endl){

@@ -52,13 +52,22 @@ class ModelObject{
   // Member functions:
   void parseObj();
   void PrintInfo()const;
-  tuple<bool,Color> getRayModelRGB( Ray& ray, const Color& ambl, const vector<LightSource>& lights );
+  tuple<bool,Color> getRayModelRGB( const Ray& ray, const Face& face, const Color& ambl, const vector<LightSource>& lights );
   void getVertices();
   void getVnertices();
   void getFaces();
-  tuple<bool,Face> rayTriangleIntersection( Ray& ray );
-  tuple<bool,Face>computeDist( Ray& ray, const Face& current_face);
+  void rayTriangleIntersection( Ray& ray );
+  void computeDist( Ray& ray, Face& current_face);
 
+  void printFaces() const;
+
+  const int numberOfFaces() const{
+    return static_cast<int>( F.size() );
+  }
+
+  const Face getFace(const int& index) const{
+    return F[index];
+  }
 
   
  protected:
@@ -88,13 +97,8 @@ class ModelObject{
   vector< Vector3d > vn;
 
   Matrix3d face_material;
-
-  // 2d array to hold all t's:
-  vector< vector< double > > ts; 
-
   
   double tval;
-  Vector3d ptos;
 
 };
 
