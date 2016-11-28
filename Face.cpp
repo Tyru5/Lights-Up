@@ -48,7 +48,7 @@ void Face::pprint(ostream& out) const{
   out << mvil << endl;
   out << "With this associated material: \n" << material << endl;
   out << "With surface normal: \n" << surface_normal << endl;
-  out << "With ptos of = \n" << ptos << endl;
+  out << "With ptof of = \n" << ptof << endl;
 }
 
 

@@ -33,6 +33,7 @@ using namespace std;
 // Macros:
 #define DEBUG false
 
+Vector3d getSnrm(const Face& face);
 
 void ModelObject::pprint(ostream& out) const{
   out << "Model: " << obj_file << endl;
@@ -329,23 +330,129 @@ void ModelObject::getFaces(){
 
 }
 
-tuple<bool, Color> ModelObject::getRayModelRGB( const Ray& ray, const Face& face, const Color& ambl, const vector<LightSource>& lights ){
+
+// void ModelObject::rayTriangleIntersection( Ray& ray ){
+
+//   /*
+//     2nd, find 't' (or how much to travel out the ray)
+//     For each face in the model, pass it and find 't'
+//   */
+
+//   for(int i = 0; i < static_cast<int>( shapes[0].mesh.num_face_vertices.size() ); i++){ // 0 b/c only will ever be one shape
+//     computeDist( ray, F[i] ); // pass each face from the model.
+//   }
+
+// }
+
+// // Algorithm for Ray Triangle Intersection:
+// void ModelObject::computeDist( Ray& ray, Face& current_face ){
+
+//   /*For each pixel, throw ray out of focal point
+//     and calculate colour along ray;
+//     Fill in pixel value;
+//   */
+
+//   double beta;
+//   double gamma;
+  
+//   /* Defaults of ray*/
+//   Vector3d origin(0,0,0);
+//   Vector3d direction(0,0,0); // origin, direction
+  
+//   /* Defaults for face vertices*/
+//   Vector3d A(0,0,0);
+//   Vector3d B(0,0,0);
+//   Vector3d C(0,0,0);
+
+//   Matrix3d mtm(3,3);
+//   Matrix3d Mx1,Mx2,Mx3;
+//   double detMTM, detMTM1, detMTM2, detMTM3;
+  
+ 
+
+//   origin = ray.origin;
+//   // cout << "origin = \n" << origin << endl;
+//   direction = ray.direction;
+//   // cout << "direction = \n" << direction << endl;
+  
+  
+//   A = current_face.getA();
+//   // cout << "A = \n" << A << endl;
+//   B = current_face.getB();
+//   // cout << "B = \n" << B << endl;
+//   C = current_face.getC();
+//   // cout << "C = \n" << C << endl;
+  
+//   // Find vectors for two edges sharing V1 (which is A in my case):
+//   Vector3d AB = A-B;
+//   Vector3d AC = A-C;
+//   Vector3d al = A-origin;
+  
+//   mtm.col(0) = AB;
+//   mtm.col(1) = AC;
+//   mtm.col(2) = direction;
+  
+//   // cout << mtm << endl;
+  
+//   detMTM = mtm.determinant();
+  
+//   Mx1 = mtm;
+//   Mx2 = mtm;
+//   Mx3 = mtm;
+  
+//   Mx1.col(0) = al;  
+//   detMTM1 = Mx1.determinant();
+  
+//   Mx2.col(1) = al;
+//   detMTM2 = Mx2.determinant();
+  
+//   Mx3.col(2) = al;
+//   detMTM3 = Mx3.determinant();
+  
+//   beta  = detMTM1/detMTM;
+//   // cout << "Beta: " << beta << endl;      
+//   gamma = detMTM2/detMTM;
+//   // cout << "Gamma: " << gamma << endl;
+//   tval  = detMTM3/detMTM;
+//   // cout << " computed t: = " << tval << endl;
+  
+//   // Error Checking:
+//   if( beta >= 0.0 && gamma >= 0.0 && (beta+gamma <= 1.0) && tval >= 0.0){ // ray intersect!
+//     // cout << "Ray intersected with face!" << endl;
+//     // cout << " computed t intersected: = " << tval << endl;
+//     // cout << "Beta: " << beta << endl;
+//     // cout << "Gamma: " << gamma << endl;
+    
+//     // checking t val:
+//     // if( tval <= ts[i][c] || ts[i][c] == -1.0){
+//     if( tval < ray.best_t && tval > 0.00001 ){ // UPDATED AGAIN TOOK AWAY THE = SIGN WHEN COMPARING
+//       ray.best_t = tval;
+//       current_face.ptos = origin + tval * direction;
+//       // cout << "~~~~~In compute dist :: current face = ~~~~~~\n" << current_face << "~~~~~~end of compute dist~~~~~~~~\n" << endl;
+//     }
+    
+//   } // end of ray intersect
+  
+// }
+
+
+tuple<bool, Color> ModelObject::getRayModelRGB( const Ray& ray, const Face& face, const Vector3d& ptof, const Color& ambl, const vector<LightSource>& lights ){
 
   /*
     Given a certain ray-triangle (face) intersection, compute the RGB off the surface:
   */
 
+
   // Now, for each face that each model has, get the RGB of each face
-  Vector3d zero_vector(0,0,0);
-  // bool res = (face.ptos != zero) ? true :  false;
-  // cout << "res = " << res << endl;
-    
+  Vector3d zero1_vector(-1,-1,-1);
   double alpha = 16.0;
   Color color; // to start off, a blank color;
 
-  if( face.ptos != zero_vector ){ // if the ray did intersect with the triangle (face) 
+  // if( face.ptos != zero_vector ){ // if the ray did intersect with the triangle (face)
+  if( ptof != zero1_vector ){
+
     
-    Vector3d snrm = face.surface_normal; snrm = snrm/snrm.norm(); //JUST UPDATED IT!
+    Vector3d snrm = getSnrm( face ); // unit length
     // if(DEBUG) cout << "the snrm on sphere is = " << snrm.transpose() << " with ptos = " << ptos.transpose() << endl;
     // Initial condition of the ambient lighting of the scene:
     Vector3d fa = face.material.row(0); // zero row will be ambient
@@ -359,16 +466,16 @@ tuple<bool, Color> ModelObject::getRayModelRGB( const Ray& ray, const Face& face
       Vector3d lp( lights[z].position(0), lights[z].position(1), lights[z].position(2) );
       // if(DEBUG) cout << "light position = " << lp.transpose() << endl;
     
-      Vector3d toL = lp - face.ptos; toL = toL/toL.norm(); // unit length
+      Vector3d toL = lp - ptof; toL = toL/toL.norm(); // unit length
       // cout << "toL = " << toL.transpose() << " with associated ptos = " << face.ptos.transpose() << endl;
     
       if( snrm.dot( toL ) > 0.0 ){ // checking now light behind the object
-	
+
   	Vector3d fd = face.material.row(1); // zero row will be ambient
   	Color face_diffuse = Color( fd(0), fd(1), fd(2) );
-  	color += face_diffuse * lights[z].energy * snrm.dot( toL );
+	color += face_diffuse * lights[z].energy * snrm.dot( toL );
   	// cout << "color2 = " << color;
-  	Vector3d toC  = ray.origin - face.ptos; toC = toC / toC.norm();
+  	Vector3d toC  = ray.origin - ptof; toC = toC / toC.norm();
   	// cout << "toC = " << toC.transpose() << " with associated ptos = " << ptos.transpose() << endl;
 	
   	Vector3d spR  = (2 * snrm.dot( toL ) * snrm) - toL;
@@ -379,8 +486,8 @@ tuple<bool, Color> ModelObject::getRayModelRGB( const Ray& ray, const Face& face
   	Vector3d fs = face.material.row(2);
   	Color face_specular = Color( fs(0), fs(1), fs(2) );	
   	color += face_specular * lights[z].energy *  pow( toC.dot( spR ), alpha );
-  	// cout << "color3 = " << color << "with ptos of = " << face.ptos.transpose() << endl;
-
+  	// cout << "color3 = " << color << "with ptos of = " << ptof.transpose() << endl;
+	
       }
 
     }
@@ -397,118 +504,24 @@ tuple<bool, Color> ModelObject::getRayModelRGB( const Ray& ray, const Face& face
 }
 
 
-
-void ModelObject::rayTriangleIntersection( Ray& ray ){
-
-  /*
-    2nd, find 't' (or how much to travel out the ray)
-    For each face in the model, pass it and find 't'
-  */
-
-  for(int i = 0; i < static_cast<int>( shapes[0].mesh.num_face_vertices.size() ); i++){ // 0 b/c only will ever be one shape
-    computeDist( ray, F[i] ); // pass each face from the model.
-  }
-
-}
-
-// Algorithm for Ray Triangle Intersection:
-void ModelObject::computeDist( Ray& ray, Face& current_face ){
-
-  /*For each pixel, throw ray out of focal point
-    and calculate colour along ray;
-    Fill in pixel value;
-  */
-
-  double beta;
-  double gamma;
-  
-  /* Defaults of ray*/
-  Vector3d origin(0,0,0);
-  Vector3d direction(0,0,0); // origin, direction
-  
-  /* Defaults for face vertices*/
-  Vector3d A(0,0,0);
-  Vector3d B(0,0,0);
-  Vector3d C(0,0,0);
-
-  Matrix3d mtm(3,3);
-  Matrix3d Mx1,Mx2,Mx3;
-  double detMTM, detMTM1, detMTM2, detMTM3;
-  
- 
-
-  origin = ray.origin;
-  // cout << "origin = \n" << origin << endl;
-  direction = ray.direction;
-  // cout << "direction = \n" << direction << endl;
-  
-  
-  A = current_face.getA();
-  // cout << "A = \n" << A << endl;
-  B = current_face.getB();
-  // cout << "B = \n" << B << endl;
-  C = current_face.getC();
-  // cout << "C = \n" << C << endl;
-  
-  // Find vectors for two edges sharing V1 (which is A in my case):
-  Vector3d AB = A-B;
-  Vector3d AC = A-C;
-  Vector3d al = A-origin;
-  
-  mtm.col(0) = AB;
-  mtm.col(1) = AC;
-  mtm.col(2) = direction;
-  
-  // cout << mtm << endl;
-  
-  detMTM = mtm.determinant();
-  
-  Mx1 = mtm;
-  Mx2 = mtm;
-  Mx3 = mtm;
-  
-  Mx1.col(0) = al;  
-  detMTM1 = Mx1.determinant();
-  
-  Mx2.col(1) = al;
-  detMTM2 = Mx2.determinant();
-  
-  Mx3.col(2) = al;
-  detMTM3 = Mx3.determinant();
-  
-  beta  = detMTM1/detMTM;
-  // cout << "Beta: " << beta << endl;      
-  gamma = detMTM2/detMTM;
-  // cout << "Gamma: " << gamma << endl;
-  tval  = detMTM3/detMTM;
-  // cout << " computed t: = " << tval << endl;
-  
-  // ADDED: Early break cases:
-  // if( beta > 0.0 || gamma < 0.0 ) return make_tuple(false, Face() ); // default face, doesn't matter anywy
-  // if( beta+gamma > 1.0) return make_tuple(false, Face() );
-  // if( t < 0.0 ) return make_tuple(false, Face() );
-  
-  // Error Checking:
-  if( beta >= 0.0 && gamma >= 0.0 && (beta+gamma <= 1.0) && tval >= 0.0){ // ray intersect!
-    // cout << "Ray intersected with face!" << endl;
-    // cout << " computed t intersected: = " << tval << endl;
-    // cout << "Beta: " << beta << endl;
-    // cout << "Gamma: " << gamma << endl;
-    
-    // checking t val:
-    // if( tval <= ts[i][c] || ts[i][c] == -1.0){
-    if( tval < ray.best_t && tval > 0.00001 ){ // UPDATED AGAIN TOOK AWAY THE = SIGN WHEN COMPARING
-      ray.best_t = tval;
-      current_face.ptos = origin + tval * direction;
-      // cout << "~~~~~In compute dist :: current face = ~~~~~~\n" << current_face << "~~~~~~end of compute dist~~~~~~~~\n" << endl;
-    }
-    
-  }
-  
-}
-
 void ModelObject::printFaces() const{
   for(int i = 0; i < static_cast<int>( shapes[0].mesh.num_face_vertices.size() ); i++){
     cout << F[i] << endl;
   }
+}
+
+Vector3d getSnrm(const Face& face){
+
+  Vector3d e1,e2,A,B,C,fnrm;
+  A = face.getA();
+  B = face.getB();
+  C = face.getC();
+  
+  e1 = A-B;
+  e2 = A-C;
+  
+  fnrm = e1.cross(e2);
+  fnrm = fnrm / fnrm.norm();
+  
+  return fnrm;
 }

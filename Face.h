@@ -33,7 +33,7 @@ class Face{
   const Vector3d getA() const;
   const Vector3d getB() const;
   const Vector3d getC() const;
-  
+
   // copy assignment operator: 1 of the BIG THREE
   // This doesn't really make sense yet...
   const Face& operator= (const Face& rhs){
@@ -53,7 +53,7 @@ class Face{
 
   Matrix3d material;
   Vector3d surface_normal;
-  Vector3d ptos = Vector3d(0,0,0); // (0,0,0) by default
+  Vector3d ptof = Vector3d(-1,-1,-1); // by default
   
   Matrix3d mvil;
 

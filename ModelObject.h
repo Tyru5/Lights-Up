@@ -52,7 +52,7 @@ class ModelObject{
   // Member functions:
   void parseObj();
   void PrintInfo()const;
-  tuple<bool,Color> getRayModelRGB( const Ray& ray, const Face& face, const Color& ambl, const vector<LightSource>& lights );
+  tuple<bool,Color> getRayModelRGB( const Ray& ray, const Face& face, const Vector3d& ptof, const Color& ambl, const vector<LightSource>& lights );
   void getVertices();
   void getVnertices();
   void getFaces();

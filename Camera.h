@@ -38,24 +38,25 @@ class Camera{
 
   // member functions:
   void parseScene( const string& scene_file );
-
-  void getModelFaces();
-
   void buildRM();
   void calculateRays();
+
+  void getModelFaces();
   
   void print_ts(const vector< vector<double>>& vect);
   void find_tmin_tmax( vector< vector<double>>& tvals);
   
   // Where the magic happens:  
-  Vector3i getColour(const double& tval);
-  RowVector3i  mapColour(const Color& bc);
-  void writeImage(const string& out_file);
-  void writeImage2( const string& out_file );
+  RowVector3i mapColour(const Color& bc);
+  void writeSpheres(const string& out_file);
+  void writeModels( const string& out_file );
   void printPixs() const;
   
-  void rayTriangleIntersection(const ModelObject& obj, const Face& face);
+  void rayTriangleIntersection();
+  void computeDist( const Face& current_face );
 
+  void print_ptof();
+  
   void raySphereIntersection();
 
   void getModelFacesRGB();
@@ -113,12 +114,13 @@ class Camera{
   // array of rays hey...
   vector< vector< Ray > > Rays;
 
+  // 2d array to hold all t's:
+  vector< vector< double > > ts;
+  vector< vector< Vector3d > > ptof;
+  
 
-  // TESTING:
-  vector< tuple<bool, Color> > sphere_colors;
-  vector< tuple<bool, Color> > model_colors;
-
-  vector < vector<RowVector3i> > pixs;
+  vector < vector<RowVector3i> > sphere_pixs;
+  vector < vector<RowVector3i> > model_pixs;
 
   
   double tmin = numeric_limits<double>::max(); // max double

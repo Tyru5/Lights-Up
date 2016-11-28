@@ -1,9 +1,9 @@
-eye 3 3 0
+eye 3 3 3
 look 0 0 0
 up 0 0 1
 d 1
 bounds -1 -1 1 1
-res 128 128
-ambient 0.2 0.2 0.2
-light 0 3 3 1 1.0 1.0 1.0
+res 512 512
+ambient 0.0 0.0 0.0
+light -1 4 0 1 1.0 1.0 1.0
 model 0.0 0.0 0.0 1.0 0.0 0.0 0.0 box.obj

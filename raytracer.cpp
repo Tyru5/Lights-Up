@@ -68,12 +68,14 @@ int main(int argc, char *argv[]){
   
   camera.buildRM();
   camera.calculateRays();
+
+  camera.rayTriangleIntersection();
   
   // camera.raySphereIntersection();
-  camera.getModelFaces();
+  // camera.getModelFaces();
   // camera.getModelFacesRGB();
 
-  camera.writeImage2( argv[2] );
+  camera.writeModels( argv[2] );
 
   
   return 0;

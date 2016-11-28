@@ -266,28 +266,154 @@ void Camera::calculateRays(){
   
 // }
 
-void Camera::getModelFaces() {
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Algorithm for Ray Triangle Intersection:
+void Camera::computeDist( const Face& current_face ){
 
-  /*
-    This member function gets the point of intersection for each face before getting the color for each face.
-   */
+  /*For each pixel, throw ray out of focal point
+    and calculate colour along ray;
+    Fill in pixel value;
+  */
 
-  for( int i = 0; i < width; i++){
-    for( int c = 0; c < height; c++){ // for each ray
+  // int num_faces = obj.get_faces();
+  // cout << "Polygon count: " << num_faces << endl;
+  
+  double beta;
+  double gamma;
+  double t;
+  
+  Vector3d origin(0,0,0);
+  Vector3d direction(0,0,0); // origin, direction
+  
+  Vector3d A(0,0,0);
+  Vector3d B(0,0,0);
+  Vector3d C(0,0,0); // face vertices
 
-      for( int m = 0; m < static_cast<int>(modelObject_list.size()); m++){ // for all sphere in scene
-	modelObject_list[m].rayTriangleIntersection( Rays[i][height - c -1] );
+  Matrix3d mtm(3,3);
+  Matrix3d Mx1,Mx2,Mx3;
+  double detMTM, detMTM1, detMTM2, detMTM3;
+  
+ 
+
+  // cout << faces << endl;
+  
+  for(int i = 0; i < width; i++){ // for each pixel on the image plane...
+    for(int c = 0; c < height; c++){
+      
+      origin = Rays[i][c].origin;
+      // cout << "O = \n" << O << endl;
+      direction = Rays[i][c].direction;
+      // cout << "D = \n" << D << endl;
+      
+     
+      A = current_face.getA();
+      // cout << "A = \n" << A << endl;
+      B = current_face.getB();
+      // cout << "B = \n" << B << endl;
+      C = current_face.getC();
+      // cout << "C = \n" << C << endl;
+      
+      // Find vectors for two edges sharing V1 (which is A in my case):
+      Vector3d AB = A-B;
+      Vector3d AC = A-C;
+      Vector3d al = A-origin;
+      
+      mtm.col(0) = AB;
+      mtm.col(1) = AC;
+      mtm.col(2) = direction;
+      
+      // cout << mtm << endl;
+      
+      detMTM = mtm.determinant();
+      
+      Mx1 = mtm;
+      Mx2 = mtm;
+      Mx3 = mtm;
+      
+      Mx1.col(0) = al;  
+      detMTM1 = Mx1.determinant();
+      
+      Mx2.col(1) = al;
+      detMTM2 = Mx2.determinant();
+      
+      Mx3.col(2) = al;
+      detMTM3 = Mx3.determinant();
+      
+      beta  = detMTM1/detMTM;
+      // cout << "Beta: " << beta << endl;      
+      gamma = detMTM2/detMTM;
+      // cout << "Gamma: " << gamma << endl;
+      t     = detMTM3/detMTM;
+      // cout << " computed t: = " << t << endl;
+      
+      // Error Checking:
+      if( beta >= 0.0 && gamma >= 0.0 && (beta+gamma <= 1.0) && t >= 0.0){ // ray intersect!
+	// cout << "Ray intersected with face!" << endl;
+	// cout << " computed t intersected: = " << t << endl;
+	// cout << "Beta: " << beta << endl;
+	// cout << "Gamma: " << gamma << endl;
+	
+	// checking t val:
+	if( t <= ts[i][c] || ts[i][c] == -1.0 ){
+	  ts[i][c] = t; // smallest tval
+	  ptof[i][c] = origin + t* direction; // smallest point of intersection on face.
+	}
+	
       }
+      
+    }// end inner for loop.
+  }// end outer for loop.
 
-    } 
-  } // end of rays.
+}
 
-  // cout << "~~~~Printing out the faces from the Camera class~~~~" << endl;
-  // for( int m = 0; m < static_cast<int>(modelObject_list.size()); m++){ // for all sphere in scene
-  //   modelObject_list[m].printFaces();
-  // }
+
+void Camera::rayTriangleIntersection(){
+
+  int number_of_faces = modelObject_list[0].numberOfFaces();
+  // allocate space for ts:
+  ts = vector< vector< double > >(width, vector<double>( height, -1.0 )  );
+  ptof= vector< vector< Vector3d > >(width, vector<Vector3d>( height, Vector3d(-1,-1,-1) )  );
+
+  // print_ts(ts);
+  // cout << "before" << endl;
+  // print_ptof();
+  
+  for(int i = 0; i < number_of_faces; i++){
+    // cout << face.getFace(i) << endl;
+    computeDist( modelObject_list[0].getFace(i) ); // for now, only one model so 0th model in the vector of models
+  }
+
+  // print_ts(ts);
+  // cout << "after " << endl;
+  // print_ptof();
+  // cout << "Polygon count (faces) : " << number_of_faces << endl;
   
 }
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+// void Camera::getModelFaces() {
+
+//   /*
+//     This member function gets the point of intersection for each face before getting the color for each face.
+//    */
+
+//   for( int i = 0; i < width; i++){
+//     for( int c = 0; c < height; c++){ // for each ray
+
+//       for( int m = 0; m < static_cast<int>(modelObject_list.size()); m++){ // for all sphere in scene
+// 	modelObject_list[m].rayTriangleIntersection( Rays[i][height - c -1] );
+//       }
+
+//     } 
+//   } // end of rays.
+
+//   cout << "~~~~Printing out the faces from the Camera class~~~~" << endl;
+//   for( int m = 0; m < static_cast<int>(modelObject_list.size()); m++){ // for all sphere in scene
+//     modelObject_list[m].printFaces();
+//   }
+  
+// }
 
 /*
 void Camera::getModelFacesRGB() {
@@ -340,12 +466,12 @@ RowVector3i Camera::mapColour( const Color &c ){
 }
 
 
-void Camera::writeImage( const string& out_file ){
+void Camera::writeSpheres( const string& out_file ){
 
   ofstream out( out_file );
   if( !out ) cout << "Sorry! Couldn't write out the file: " << out_file << endl;
 
-  pixs = vector< vector<RowVector3i> >(width, vector<RowVector3i>(height, RowVector3i(0,0,0) ) ); // pretty awesome
+  sphere_pixs = vector< vector<RowVector3i> >(width, vector<RowVector3i>(height, RowVector3i(0,0,0) ) ); // pretty awesome
   // printPixs();
   
   // start writing out to the file:
@@ -363,7 +489,7 @@ void Camera::writeImage( const string& out_file ){
 	  // rgb = mapColour( sphere_colors[i * height + c] );
 	  //rgb = mapColour( get<1>(res) );
 	  // out << rgb(0) << " " << rgb(1) << " " << rgb(2) << " ";
-	  pixs[i][c] = mapColour( get<1>(res) );
+	  sphere_pixs[i][c] = mapColour( get<1>(res) );
 	  // cout << "pix[i,c] = " << pixs[i][c] << endl;
 	  
 	}
@@ -375,7 +501,7 @@ void Camera::writeImage( const string& out_file ){
   // now writing out:
   for(int i = 0; i < width; i++, out << endl){
     for(int j = 0; j < height; j++){
-      out << pixs[j][i] << " "; // reversed to print out correctly
+      out << sphere_pixs[j][i] << " "; // reversed to print out correctly
     }
   }
   
@@ -384,12 +510,12 @@ void Camera::writeImage( const string& out_file ){
 }
 
 
-void Camera::writeImage2( const string& out_file ){
+void Camera::writeModels( const string& out_file ){
 
   ofstream out( out_file );
   if( !out ) cout << "Sorry! Couldn't write out the file: " << out_file << endl;
 
-  pixs = vector< vector<RowVector3i> >(width, vector<RowVector3i>(height, RowVector3i(0,0,0) ) ); // pretty awesome
+  model_pixs = vector< vector<RowVector3i> >(width, vector<RowVector3i>(height, RowVector3i(0,0,0) ) ); // pretty awesome
   // printPixs();
   
   // start writing out to the file:
@@ -406,13 +532,11 @@ void Camera::writeImage2( const string& out_file ){
 	// cout << "number of faces in loop= " << number_of_faces << endl;
 	for(int f = 0; f < number_of_faces; f++){
 	  
-	  tuple<bool, Color> res  = modelObject_list[m].getRayModelRGB( Rays[i][height - c -1], modelObject_list[m].getFace(f), ambient_color, lightSource_list );
-	  // cout << "Color from getModelFacesRGB = " << color;
+	  tuple<bool, Color> res  = modelObject_list[m].getRayModelRGB( Rays[i][height - c -1], modelObject_list[m].getFace(f), ptof[i][height - c - 1], ambient_color, lightSource_list );
 
 	  if( get<0>(res) ){
-	    pixs[i][c] = mapColour( get<1>(res) );
-	    // cout << "pix[i,c] = " << pixs[i][c] << endl;
-	 
+	    model_pixs[i][c] = mapColour( get<1>(res) );
+	    // cout << "pix[i,c] = "<< i << ", " << c << ", " << pixs[i][c] << endl;
 	  }
    
 	} // end of faces
@@ -422,11 +546,12 @@ void Camera::writeImage2( const string& out_file ){
     } 
   } // end of rays.
 
+  // printPixs();
 
   // now writing out:
   for(int i = 0; i < width; i++, out << endl){
     for(int j = 0; j < height; j++){
-      out << pixs[j][i] << " "; // reversed to print out correctly
+      out << model_pixs[j][i] << " "; // reversed to print out correctly
     }
   }
   
@@ -458,9 +583,18 @@ void Camera::printPixs() const{
   
   for(int i = 0; i < width; i++){
     for(int c = 0; c < height; c++){
-      cout << pixs[i][c] << " ";
+      cout << model_pixs[i][c] << " ";
     }
     cout << endl;
   }
 
+}
+
+void Camera::print_ptof(){
+  for(int i =  0; i < width; i++){
+    for(int c = 0; c < height; c++){
+      cout << ptof[i][c].transpose() << " ";
+    }
+    cout << endl;
+  }
 }
