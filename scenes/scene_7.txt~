@@ -1,9 +1,0 @@
-eye 3 3 3
-look 0 0 0
-up 0 1 0
-d 1
-bounds -1 -1 1 1
-res 128 128
-ambient 0.0 0.0 0.0
-light 2 3 3 1 1.0 1.0 1.0
-model 0.0 0.0 0.0 1.0 0.0 0.0 0.0 new_box.obj

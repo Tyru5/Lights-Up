@@ -1,0 +1,10 @@
+eye 6 6 9
+look 6 5 0
+up 0 1 0
+d 1
+bounds -1 -1 1 1
+res 512 512
+ambient 0.0 0.0 0.0
+light -3 6 2 1 0.0 1.0 0.0
+light 8 6 2 1 1.0 0.0 0.0
+model 0.0 0.0 0.0 1.0 0.0 0.0 0.0 spaceinvaders.obj
