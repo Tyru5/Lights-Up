@@ -387,6 +387,66 @@ RowVector3i Camera::mapColour( const Color &c ){
 }
 
 
+void Camera::writeSpheresAndModels( const string& out_file ){
+
+  ofstream out( out_file );
+  if( !out ) cout << "Sorry! Couldn't write out the file: " << out_file << endl;
+
+  sphere_model_pixs = vector< vector<RowVector3i> >(width, vector<RowVector3i>(height, RowVector3i(0,0,0) ) ); // pretty awesome
+  // printPixs();
+  
+  // start writing out to the file:
+  out << "P3 " << endl;
+  out << width << " " << height << " 255" << endl;
+
+  // Map pixel, get only one *very important :: talked with jake*
+  for( int i = 0; i < width; i++){
+    for( int c = 0; c < height; c++){ // for each ray
+
+      // Spheres first:
+      for(int sp = 0; sp < static_cast<int>(spheres.size()); sp++){
+	
+	tuple<bool, Color> res = spheres[sp].getRaySphereRGB( Rays[i][height - c -1], ambient_color, lightSource_list );
+	if( get<0>(res) ){
+	  sphere_model_pixs[i][c] = mapColour( get<1>(res) );
+	  // cout << "Sphere pix[i,c] = " << sphere_model_pixs[i][c] << endl;
+	}
+      }
+
+      // Now models:      
+      for( int m = 0; m < static_cast<int>(modelObject_list.size()); m++){ // for all sphere in scene
+      	int number_of_faces = modelObject_list[m].numberOfFaces();
+      	// cout << "number of faces in loop= " << number_of_faces << endl;
+      	for(int f = 0; f < number_of_faces; f++){
+	  
+      	  tuple<bool, Color> res  = modelObject_list[m].getRayModelRGB( Rays[i][height - c -1], modelObject_list[m].getFace(f), ptof[i][height - c - 1], ambient_color, lightSource_list );
+
+      	  if( get<0>(res) ){
+      	    sphere_model_pixs[i][c] = mapColour( get<1>(res) );
+      	    // cout << "modelpix[i,c] = "<< i << ", " << c << ", " << sphere_model_pixs[i][c] << endl;
+      	  }
+   
+      	} // end of model faces
+      } // end of models
+      
+    } 
+  } // end of rays.
+
+  // printPixs();
+  
+  // now writing out:
+  for(int i = 0; i < width; i++, out << endl){
+    for(int j = 0; j < height; j++){ 
+      // cout << model_pixs[j][i] << " "; // reversed to print out correctly
+      out << sphere_model_pixs[j][i] << " "; // reversed to print out correctly
+    }
+  }
+  
+  out.close();
+
+}
+
+
 void Camera::writeSpheres( const string& out_file ){
 
   ofstream out( out_file );

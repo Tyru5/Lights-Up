@@ -46,6 +46,7 @@ class Camera{
   
   // Where the magic happens:  
   RowVector3i mapColour(const Color& bc);
+  void writeSpheresAndModels( const string& out_file );
   void writeSpheres(const string& out_file);
   void writeModels( const string& out_file );
   void printPixs() const;
@@ -122,7 +123,7 @@ class Camera{
 
   vector< vector< RowVector3i> > sphere_pixs;
   vector< vector< RowVector3i> > model_pixs;
-  
+  vector< vector< RowVector3i> > sphere_model_pixs;
 
   double tmin = numeric_limits<double>::max(); // max double
   double tmax = numeric_limits<double>::min(); // min double
