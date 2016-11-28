@@ -523,7 +523,6 @@ void Camera::writeModels( const string& out_file ){
   out << width << " " << height << " 255" << endl;
 
   // Map pixel, get only one *very important :: talked with jake*
-  Vector3i rgb(3);
   for( int i = 0; i < width; i++){
     for( int c = 0; c < height; c++){ // for each ray
       
@@ -536,11 +535,10 @@ void Camera::writeModels( const string& out_file ){
 
 	  if( get<0>(res) ){
 	    model_pixs[i][c] = mapColour( get<1>(res) );
-	    // cout << "pix[i,c] = "<< i << ", " << c << ", " << pixs[i][c] << endl;
+	    // cout << "pix[i,c] = "<< i << ", " << c << ", " << model_pixs[i][c] << endl;
 	  }
    
 	} // end of faces
-	
       } // end of models
       
     } 
@@ -549,11 +547,11 @@ void Camera::writeModels( const string& out_file ){
   // printPixs();
 
   // now writing out:
-  for(int i = 0; i < width; i++, out << endl){
-    for(int j = 0; j < height; j++){
-      out << model_pixs[j][i] << " "; // reversed to print out correctly
-    }
-  }
+  // for(int i = 0; i < width; i++, out << endl){
+  //   for(int j = 0; j < height; j++){
+  //     out << model_pixs[j][i] << " "; // reversed to print out correctly
+  //   }
+  // }
   
   out.close();
 
