@@ -98,8 +98,6 @@ class ModelObject{
 
   Matrix3d face_material;
   
-  double tval;
-
 };
 
 

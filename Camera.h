@@ -41,8 +41,6 @@ class Camera{
   void buildRM();
   void calculateRays();
 
-  void getModelFaces();
-  
   void print_ts(const vector< vector<double>>& vect);
   void find_tmin_tmax( vector< vector<double>>& tvals);
   
@@ -57,10 +55,6 @@ class Camera{
 
   void print_ptof();
   
-  void raySphereIntersection();
-
-  void getModelFacesRGB();
-
   // Methods for adding objects:~~~~~~~~~~~~~~~~~~~~~
   void addLightSources( const LightSource& light ){
     lightSource_list.push_back( light );
@@ -75,6 +69,14 @@ class Camera{
   }
   // done for adding objects~~~~~~~~~~~~~~~~~~~~~~~~
 
+  const int numberOfSpheres() const{
+    return static_cast<int>(spheres.size());
+  }
+
+  const int numberOfModels() const{
+    return static_cast<int>(modelObject_list.size());
+  }
+  
   
   // class instance variables:
  protected:
@@ -117,12 +119,11 @@ class Camera{
   // 2d array to hold all t's:
   vector< vector< double > > ts;
   vector< vector< Vector3d > > ptof;
+
+  vector< vector< RowVector3i> > sphere_pixs;
+  vector< vector< RowVector3i> > model_pixs;
   
 
-  vector < vector<RowVector3i> > sphere_pixs;
-  vector < vector<RowVector3i> > model_pixs;
-
-  
   double tmin = numeric_limits<double>::max(); // max double
   double tmax = numeric_limits<double>::min(); // min double
 

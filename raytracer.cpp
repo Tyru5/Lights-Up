@@ -63,19 +63,23 @@ using namespace std;
 int main(int argc, char *argv[]){
 
   // Instaniating class object(s):
+  int numSpheres,numModels;
   Camera camera;
-  camera.parseScene( argv[1] ); // this function does a whole lot, look at the source code for more details.
-  
+  camera.parseScene( argv[1] ); // this function does a whole lot, look at the source code for more details.  
   camera.buildRM();
   camera.calculateRays();
 
-  camera.rayTriangleIntersection();
-  
-  // camera.raySphereIntersection();
-  // camera.getModelFaces();
-  // camera.getModelFacesRGB();
+  numSpheres = camera.numberOfSpheres();
+  numModels  = camera.numberOfModels();
 
-  camera.writeModels( argv[2] );
+  if( numSpheres > 0 ){
+    camera.writeSpheres( argv[2] );
+  }
+
+  if( numModels > 0 ){
+    camera.rayTriangleIntersection();  
+    camera.writeModels( argv[2] );
+  }
 
   
   return 0;
