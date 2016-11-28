@@ -74,16 +74,17 @@ int main(int argc, char *argv[]){
   numModels  = camera.numberOfModels();
   // cout << "main numModels = " << numModels << endl;
 
-  // special case for scene4:
+  // 'special' case for scene4:
   if( numSpheres == 1 && numModels == 1){
-    cout << "special case" << endl;
     camera.rayTriangleIntersection(); // get model stuff
     camera.writeSpheresAndModels( argv[2] );
-  }else if( numSpheres > 0 ){
-    cout << "spheres" << endl;
+  }
+  else if( numSpheres > 0 ){
+    cout << "Spheres" << endl;
     camera.writeSpheres( argv[2] );
-  }else if( numModels > 0 ){
-    cout << "models" << endl;
+  }
+  else if( numModels > 0 ){
+    cout << "Models" << endl;
     camera.rayTriangleIntersection();  
     camera.writeModels( argv[2] );
   }
