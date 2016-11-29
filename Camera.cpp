@@ -331,7 +331,55 @@ void Camera::computeDist( const Face& current_face ){
 	// checking t val:
 	if( t <= ts[i][c] || ts[i][c] == -1.0 ){
 	  ts[i][c] = t; // smallest tval
-	  ptof[i][c] = origin + t* direction; // smallest point of intersection on face.
+	  Vector3d pointOfI = origin + t* direction; // smallest point of intersection on face.
+	  
+	  // now calculate color:
+
+	  // Now, for each face that each model has, get the RGB of each face
+	  double alpha = 16.0;
+	  Color color; // to start off, a blank color;
+
+	  Vector3d snrm = current_face.surface_normal; // getSnrm( face, toCameraVector ); // unit length <-- updated this!
+	  // if(DEBUG) cout << "the snrm on sphere is = " << snrm.transpose() << " with ptos = " << ptos.transpose() << endl;
+	  // Initial condition of the ambient lighting of the scene:
+	  Vector3d fa = current_face.material.row(0); // zero row will be ambient
+	  Color face_ambient = Color( fa(0), fa(1), fa(2) );
+	  // cout << face_ambient << endl;
+	  color = ambient_color * face_ambient;
+	  // cout << color;
+	  
+	  // cout << lights.size() << endl;
+	  for( int z = 0; z < static_cast<int>( lightSource_list.size() ); z++){
+	    
+	    Vector3d lp( lightSource_list[z].position(0), lightSource_list[z].position(1), lightSource_list[z].position(2) );
+	    // if(DEBUG) cout << "light position = " << lp.transpose() << endl;
+	    
+	    Vector3d toL = lp - pointOfI; toL = toL/toL.norm(); // unit length
+	    // cout << "toL = " << toL.transpose() << " with associated ptos = " << face.ptos.transpose() << endl;
+	    
+	    if( snrm.dot( toL ) > 0.0 ){ // checking now light behind the object
+	      
+	      Vector3d fd = current_face.material.row(1); // zero row will be ambient
+	      Color face_diffuse = Color( fd(0), fd(1), fd(2) );
+	      color += face_diffuse * lightSource_list[z].energy * snrm.dot( toL );
+	      // cout << "color2 = " << color;
+	      Vector3d toC  = origin - pointOfI; toC = toC / toC.norm();
+	      // cout << "toC = " << toC.transpose() << " with associated ptos = " << ptos.transpose() << endl;
+	      
+	      Vector3d spR  = (2 * snrm.dot( toL ) * snrm) - toL;
+	      // cout << "spR = " << spR.transpose() << " with ptos of = " << ptos.transpose() << endl;
+	      
+	      // cout << toC.dot( spR ) << " ptos associated = " << ptos.transpose() << endl;; //<-- why not 16?
+	      
+	      Vector3d fs = current_face.material.row(2);
+	      Color face_specular = Color( fs(0), fs(1), fs(2) );
+	      ptof[i][height - c -1] = color += face_specular * lightSource_list[z].energy *  pow( toC.dot( spR ), alpha );
+	      // cout << "color3 = " << color << "with ptos of = " << ptof.transpose() << endl;
+	      
+	    }
+	    
+	  }
+	  
 	}
 	
       }
@@ -347,7 +395,7 @@ void Camera::rayTriangleIntersection(){
   int number_of_faces = modelObject_list[0].numberOfFaces();
   // allocate space for ts:
   ts = vector< vector< double > >(width, vector<double>( height, -1.0 )  );
-  ptof= vector< vector< Vector3d > >(width, vector<Vector3d>( height, Vector3d(-1,-1,-1) )  );
+  ptof= vector< vector< Color > >(width, vector<Color>( height, Color() )  );
 
   // print_ts(ts);
   // cout << "before" << endl;
@@ -403,35 +451,25 @@ void Camera::writeSpheresAndModels( const string& out_file ){
   for( int i = 0; i < width; i++){
     for( int c = 0; c < height; c++){ // for each ray
 
-      // Spheres first:
+      // // Spheres first:
       for(int sp = 0; sp < static_cast<int>(spheres.size()); sp++){
 	
-	tuple<bool, Color> res = spheres[sp].getRaySphereRGB( Rays[i][height - c -1], ambient_color, lightSource_list );
-	if( get<0>(res) ){
-	  sphere_model_pixs[i][c] = mapColour( get<1>(res) );
-	  // cout << "Sphere pix[i,c] = " << sphere_model_pixs[i][c] << endl;
-	}
+      	tuple<bool, Color> res = spheres[sp].getRaySphereRGB( Rays[i][height - c -1], ambient_color, lightSource_list );
+      	if( get<0>(res) ){
+      	  sphere_model_pixs[i][c] = mapColour( get<1>(res) );
+      	  // cout << "Sphere pix[i,c] = " << sphere_model_pixs[i][c] << endl;
+      	}
       }
 
-      // Now models:      
-      for( int m = 0; m < static_cast<int>(modelObject_list.size()); m++){ // for all sphere in scene
-      	int number_of_faces = modelObject_list[m].numberOfFaces();
-      	// cout << "number of faces in loop= " << number_of_faces << endl;
-      	for(int f = 0; f < number_of_faces; f++){
-	  
-      	  tuple<bool, Color> res  = modelObject_list[m].getRayModelRGB( Rays[i][height - c -1], modelObject_list[m].getFace(f), ptof[i][height - c - 1], ambient_color, lightSource_list );
-
-      	  if( get<0>(res) ){
-      	    sphere_model_pixs[i][c] = mapColour( get<1>(res) );
-      	    // cout << "modelpix[i,c] = "<< i << ", " << c << ", " << sphere_model_pixs[i][c] << endl;
-      	  }
-   
-      	} // end of model faces
-      } // end of models
+      // Now model(s):
+      if( ptof[i][c].red != 0.0 && ptof[i][c].green != 0.0  && ptof[i][c].blue != 0.0  ){
+	sphere_model_pixs[i][c] = mapColour( ptof[i][c] );
+      }
+      
       
     } 
   } // end of rays.
-
+  
   // printPixs();
   
   // now writing out:
@@ -467,12 +505,7 @@ void Camera::writeSpheres( const string& out_file ){
 
 	tuple<bool, Color> res = spheres[sp].getRaySphereRGB( Rays[i][height - c -1], ambient_color, lightSource_list );
 	if( get<0>(res) ){
-	  // rgb = mapColour( sphere_colors[i * height + c] );
-	  //rgb = mapColour( get<1>(res) );
-	  // out << rgb(0) << " " << rgb(1) << " " << rgb(2) << " ";
 	  sphere_pixs[i][c] = mapColour( get<1>(res) );
-	  // cout << "pix[i,c] = " << pixs[i][c] << endl;
-	  
 	}
 	
       }
@@ -507,20 +540,9 @@ void Camera::writeModels( const string& out_file ){
   for( int i = 0; i < width; i++){
     for( int c = 0; c < height; c++){ // for each ray
       
-      for( int m = 0; m < static_cast<int>(modelObject_list.size()); m++){ // for all sphere in scene
-	int number_of_faces = modelObject_list[m].numberOfFaces();
-	// cout << "number of faces in loop= " << number_of_faces << endl;
-	for(int f = 0; f < number_of_faces; f++){
-	  
-	  tuple<bool, Color> res  = modelObject_list[m].getRayModelRGB( Rays[i][height - c -1], modelObject_list[m].getFace(f), ptof[i][height - c - 1], ambient_color, lightSource_list );
-
-	  if( get<0>(res) ){
-	    model_pixs[i][c] = mapColour( get<1>(res) );
-	    // cout << "pix[i,c] = "<< i << ", " << c << ", " << model_pixs[i][c] << endl;
-	  }
-   
-	} // end of faces
-      } // end of models
+      if( ptof[i][c].red != 0.0 && ptof[i][c].green != 0.0  && ptof[i][c].blue != 0.0  ){
+	model_pixs[i][c] = mapColour( ptof[i][c] );
+      }
       
     } 
   } // end of rays.
@@ -573,7 +595,7 @@ void Camera::printPixs() const{
 void Camera::print_ptof(){
   for(int i =  0; i < width; i++){
     for(int c = 0; c < height; c++){
-      cout << ptof[i][c].transpose() << " ";
+      cout << ptof[i][c];
     }
     cout << endl;
   }

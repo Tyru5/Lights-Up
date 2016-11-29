@@ -119,7 +119,7 @@ class Camera{
 
   // 2d array to hold all t's:
   vector< vector< double > > ts;
-  vector< vector< Vector3d > > ptof;
+  vector< vector< Color > > ptof;
 
   vector< vector< RowVector3i> > sphere_pixs;
   vector< vector< RowVector3i> > model_pixs;

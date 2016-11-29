@@ -330,72 +330,74 @@ void ModelObject::getFaces(){
 
 }
 
-tuple<bool, Color> ModelObject::getRayModelRGB( const Ray& ray, const Face& face, const Vector3d& ptof, const Color& ambl, const vector<LightSource>& lights ){
+/* Found out that i don't need to do this! */
+// tuple<bool, Color> ModelObject::getRayModelRGB( const Ray& ray, const Face& face, const Vector3d& ptof, const Color& ambl, const vector<LightSource>& lights ){
 
-  /*
-    Given a certain ray-triangle (face) intersection, compute the RGB off the surface:
-  */
+//   /*
+//     Given a certain ray-triangle (face) intersection, compute the RGB off the surface:
+//   */
   
-  // Now, for each face that each model has, get the RGB of each face
-  Vector3d zero1_vector(-1,-1,-1);
-  double alpha = 16.0;
-  Color color; // to start off, a blank color;
+//   // Now, for each face that each model has, get the RGB of each face
+//   Vector3d zero1_vector(-1,-1,-1);
+//   double alpha = 16.0;
+//   Color color; // to start off, a blank color;
 
-  Vector3d toCameraVector  = ray.origin - ptof; toCameraVector = toCameraVector / toCameraVector.norm();  
+//   Vector3d toCameraVector  = ray.origin - ptof; toCameraVector = toCameraVector / toCameraVector.norm();  
   
-  // if( face.ptos != zero_vector ){ // if the ray did intersect with the triangle (face)
-  if( ptof != zero1_vector ){
+//   // if( face.ptos != zero_vector ){ // if the ray did intersect with the triangle (face)
+//   if( ptof != zero1_vector ){
     
-    Vector3d snrm = face.surface_normal; // getSnrm( face, toCameraVector ); // unit length <-- updated this!
-    // if(DEBUG) cout << "the snrm on sphere is = " << snrm.transpose() << " with ptos = " << ptos.transpose() << endl;
-    // Initial condition of the ambient lighting of the scene:
-    Vector3d fa = face.material.row(0); // zero row will be ambient
-    Color face_ambient = Color( fa(0), fa(1), fa(2) );
-    color = ambl * face_ambient;
-    // cout << color;
+//     Vector3d snrm = face.surface_normal; // getSnrm( face, toCameraVector ); // unit length <-- updated this!
+//     // if(DEBUG) cout << "the snrm on sphere is = " << snrm.transpose() << " with ptos = " << ptos.transpose() << endl;
+//     // Initial condition of the ambient lighting of the scene:
+//     Vector3d fa = face.material.row(0); // zero row will be ambient
+//     Color face_ambient = Color( fa(0), fa(1), fa(2) );
+//     // cout << face_ambient << endl;
+//     color = ambl * face_ambient;
+//     // cout << color;
       
-    // cout << lights.size() << endl;
-    for( int z = 0; z < static_cast<int>( lights.size() ); z++){
+//     // cout << lights.size() << endl;
+//     for( int z = 0; z < static_cast<int>( lights.size() ); z++){
     
-      Vector3d lp( lights[z].position(0), lights[z].position(1), lights[z].position(2) );
-      // if(DEBUG) cout << "light position = " << lp.transpose() << endl;
+//       Vector3d lp( lights[z].position(0), lights[z].position(1), lights[z].position(2) );
+//       // if(DEBUG) cout << "light position = " << lp.transpose() << endl;
     
-      Vector3d toL = lp - ptof; toL = toL/toL.norm(); // unit length
-      // cout << "toL = " << toL.transpose() << " with associated ptos = " << face.ptos.transpose() << endl;
+//       Vector3d toL = lp - ptof; toL = toL/toL.norm(); // unit length
+//       // cout << "toL = " << toL.transpose() << " with associated ptos = " << face.ptos.transpose() << endl;
     
-      if( snrm.dot( toL ) > 0.0 ){ // checking now light behind the object
+//       if( snrm.dot( toL ) > 0.0 ){ // checking now light behind the object
 
-  	Vector3d fd = face.material.row(1); // zero row will be ambient
-  	Color face_diffuse = Color( fd(0), fd(1), fd(2) );
-	color += face_diffuse * lights[z].energy * snrm.dot( toL );
-  	// cout << "color2 = " << color;
-  	Vector3d toC  = ray.origin - ptof; toC = toC / toC.norm();
-  	// cout << "toC = " << toC.transpose() << " with associated ptos = " << ptos.transpose() << endl;
+//   	Vector3d fd = face.material.row(1); // zero row will be ambient
+//   	Color face_diffuse = Color( fd(0), fd(1), fd(2) );
+// 	color += face_diffuse * lights[z].energy * snrm.dot( toL );
+//   	// cout << "color2 = " << color;
+//   	Vector3d toC  = ray.origin - ptof; toC = toC / toC.norm();
+//   	// cout << "toC = " << toC.transpose() << " with associated ptos = " << ptos.transpose() << endl;
 	
-  	Vector3d spR  = (2 * snrm.dot( toL ) * snrm) - toL;
-  	// cout << "spR = " << spR.transpose() << " with ptos of = " << ptos.transpose() << endl;
+//   	Vector3d spR  = (2 * snrm.dot( toL ) * snrm) - toL;
+//   	// cout << "spR = " << spR.transpose() << " with ptos of = " << ptos.transpose() << endl;
 
-  	// cout << toC.dot( spR ) << " ptos associated = " << ptos.transpose() << endl;; //<-- why not 16?
+//   	// cout << toC.dot( spR ) << " ptos associated = " << ptos.transpose() << endl;; //<-- why not 16?
 
-  	Vector3d fs = face.material.row(2);
-  	Color face_specular = Color( fs(0), fs(1), fs(2) );	
-  	color += face_specular * lights[z].energy *  pow( toC.dot( spR ), alpha );
-  	// cout << "color3 = " << color << "with ptos of = " << ptof.transpose() << endl;
+//   	Vector3d fs = face.material.row(2);
+//   	Color face_specular = Color( fs(0), fs(1), fs(2) );
+//   	color += face_specular * lights[z].energy *  pow( toC.dot( spR ), alpha );
+//   	// cout << "color3 = " << color << "with ptos of = " << ptof.transpose() << endl;
 	
-      }
+//       }
 
-    }
+//     }
     
-    // cout << "about to return the color." << endl;
-    return make_tuple(true, color);
+//     // cout << "about to return the color." << endl;
+//     return make_tuple(true, color);
+    
+//   }else{
+    
+//     return make_tuple(false, Color() );
       
-  }else{
+//   }
     
-    return make_tuple(false, Color() );
-      
-  }
-    
-}
+// }
 
 
 void ModelObject::printFaces() const{
