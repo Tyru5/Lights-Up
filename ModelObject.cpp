@@ -346,7 +346,7 @@ tuple<bool, Color> ModelObject::getRayModelRGB( const Ray& ray, const Face& face
   // if( face.ptos != zero_vector ){ // if the ray did intersect with the triangle (face)
   if( ptof != zero1_vector ){
     
-    Vector3d snrm = getSnrm( face, toCameraVector ); // unit length
+    Vector3d snrm = face.surface_normal; // getSnrm( face, toCameraVector ); // unit length <-- updated this!
     // if(DEBUG) cout << "the snrm on sphere is = " << snrm.transpose() << " with ptos = " << ptos.transpose() << endl;
     // Initial condition of the ambient lighting of the scene:
     Vector3d fa = face.material.row(0); // zero row will be ambient
