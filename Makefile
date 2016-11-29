@@ -59,4 +59,4 @@ clean:
 
 package:
 	@echo "Packaging up project directory..."
-	tar -cvf pa3.tar *.cpp *.h ./Eigen Makefile *.txt *.ply
+	tar -cvf pa4.tar *.cpp *.h ./Eigen Makefile *.txt *.mtl *.obj
