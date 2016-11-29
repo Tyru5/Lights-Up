@@ -48,6 +48,16 @@ Furthermore, Here is a general overview of Eigen:
 
 ~More information can be found here: http://eigen.tuxfamily.org/index.php?title=Main_Page
 
+***************************************************************************************************
+
+I also used another third party library called Tiny obj Loader.
+
+As taken from their official webpage, 
+"Tiny but powerful single file wavefront obj loader written in C++. No dependency except for C++ STL. It can parse 10M over polygons with moderate memory and time."
+
+~More information may be found here: https://syoyo.github.io/tinyobjloader/
+
+
 Best,
 Tyrus Malmstrom.
   
